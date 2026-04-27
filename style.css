@@ -435,3 +435,44 @@ button {
     border-color: var(--level-red);
     color: var(--level-red);
 }
+
+/* 確保下拉選單與輸入框寬度一致且不會溢出 */
+input,
+select {
+    width: 100% !important;
+    /* 強制滿寬 */
+    max-width: 100%;
+    box-sizing: border-box;
+    /* 關鍵：讓 padding 不會撐大寬度 */
+    display: block;
+    height: 48px;
+    /* 固定高度讓視覺統一 */
+    font-size: 16px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+/* 針對 iOS 的深度優化 */
+select,
+input {
+    /* 1. 防止點擊時自動縮放：字體必須大於等於 16px */
+    font-size: 16px !important;
+
+    /* 2. 移除 iOS 預設的內陰影與圓角樣式 */
+    -webkit-appearance: none;
+    appearance: none;
+
+    /* 3. 確保背景與邊框一致 */
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
+    /* 4. 加入自定義箭頭 (因為 appearance:none 會把原生的箭頭拔掉) */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ccc%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 30px;
+    /* 為箭頭留位子 */
+}

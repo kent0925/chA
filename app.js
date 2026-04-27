@@ -206,15 +206,14 @@ async function submitReport() {
 // --- 7. 通用輔助函式 ---
 function openReportView() {
     switchView('view-report');
-    renderTags(); // 確保開啟時標籤已生成
+    renderTags(); // 務必重新渲染，標籤才會出現
 }
 
 function resetApp() {
-    switchView('view-search');
+    switchView('view-search'); // 返回搜尋畫面
+    // 清空輸入
     document.querySelectorAll('input').forEach(i => i.value = '');
-    document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
-    document.getElementById('in-age').value = 'ALL';
-    if (document.getElementById('report-age')) document.getElementById('report-age').value = '';
+    document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
     selectedTags.clear();
 }
 
