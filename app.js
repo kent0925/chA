@@ -73,6 +73,13 @@ async function handleSearch() {
     const area = document.getElementById('in-area').value;
     const ageRange = document.getElementById('in-age').value;
     const phone = document.getElementById('in-phone').value.trim();
+    const phoneInput = document.getElementById('report-phone').value;
+    // 強制只留下數字，並確保只有 4 碼
+    const phoneClean = phoneInput.replace(/\D/g, '').slice(0, 4);
+
+    if (phoneInput && phoneClean.length !== 4) {
+        return alert("電話末四碼必須為 4 位數字");
+    }
 
     if (!name || !area) return alert("姓名與地區為必填");
 
