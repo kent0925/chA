@@ -501,3 +501,90 @@ input {
     flex-wrap: wrap;
     gap: 8px;
 }
+
+/* 讓標籤在手機上更易點選：增加點擊區域 (Touch Target) */
+.tag-chip {
+    user-select: none;
+    /* 防止長按選取文字 */
+    -webkit-tap-highlight-color: transparent;
+    /* 移除行動端點擊後的藍框 */
+}
+
+/* 強化分類標題的視覺感 */
+.tag-group-label {
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background: #f8f9fa;
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.ui-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* 法院標籤樣式 (通常是紅色警示) */
+.ui-tag.high-risk {
+    background: #ffeded;
+    color: #e74c3c;
+    border: 1px solid #fab1a0;
+}
+
+/* 民間標籤樣式 (中性色，因為裡面有好有壞) */
+.ui-tag.user-tag {
+    background: #f1f2f6;
+    color: #2f3542;
+    border: 1px solid #dfe4ea;
+}
+
+/* 分數動畫 */
+.score-value {
+    transition: all 0.5s ease-in-out;
+}
+
+.legal-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.disclaimer {
+    font-size: 11px;
+    color: #95a5a6;
+    line-height: 1.6;
+    text-align: justify;
+    margin-top: 15px;
+}
+
+.takedown-box {
+    text-align: center;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.takedown-box p {
+    font-size: 13px;
+    color: #7f8c8d;
+    margin-bottom: 8px;
+}
+
+.btn-small-outline {
+    background: none;
+    border: 1px solid #bdc3c7;
+    color: #7f8c8d;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-small-outline:hover {
+    background: #f1f2f6;
+}

@@ -23,47 +23,34 @@ function switchView(viewId) {
 // --- 3. 雙向評鑑標籤庫資料 (Version 2.8 完整版) ---
 const TAG_LIBRARY = {
     tenant: [
-        // 空間維護
-        { id: "T1", text: "退租如新", impact: "good" },
-        { id: "T2", text: "格局魔改", impact: "bad" },
-        // 環境秩序
-        { id: "T3", text: "社區隱形", impact: "good" },
-        { id: "T4", text: "雜物領主", impact: "bad" },
-        // 設備守護
-        { id: "T5", text: "設備守護", impact: "good" },
-        { id: "T6", text: "拆房專家", impact: "bad" },
-        // 生活溝通
-        { id: "T7", text: "溝通模範", impact: "good" },
-        { id: "T8", text: "公關大師", impact: "bad" },
-        // 氣味衛生
-        { id: "T9", text: "雜物絕緣", impact: "good" },
-        { id: "T10", text: "嗅覺入侵", impact: "bad" },
-        // 金流信用 (新)
-        { id: "T11", text: "準時課代表", impact: "good" },
-        { id: "T12", text: "慣性拖款", impact: "bad" }
+        { id: "T1", text: "✨ 屋況維持極佳", impact: "good" },
+        { id: "T2", text: "🛠️ 擅自更動裝修", impact: "bad" },
+        { id: "T3", text: "🤫 維持鄰里安寧", impact: "good" },
+        { id: "T4", text: "📦 堆置雜物爭議", impact: "bad" },
+        { id: "T5", text: "🛡️ 設備妥善維護", impact: "good" },
+        { id: "T6", text: "🏚️ 設備毀損紀錄", impact: "bad" },
+        { id: "T7", text: "📱 溝通聯繫順暢", impact: "good" },
+        { id: "T8", text: "🔊 鄰里噪音投訴", impact: "bad" },
+        { id: "T9", text: "🧹 空間整潔清空", impact: "good" },
+        { id: "T10", text: "🚬 菸寵異味殘留", impact: "bad" },
+        { id: "T11", text: "💰 準時給付租金", impact: "good" },
+        { id: "T12", text: "💸 租金給付遲延", impact: "bad" }
     ],
     landlord: [
-        // 金流誠信
-        { id: "L1", text: "押金速還", impact: "good" },
-        { id: "L2", text: "押金收割", impact: "bad" },
-        // 修繕效率
-        { id: "L3", text: "修繕秒讀", impact: "good" },
-        { id: "L4", text: "修繕拖延", impact: "bad" },
-        // 隱私邊界
-        { id: "L5", text: "邊界模範", impact: "good" },
-        { id: "L6", text: "突擊檢查", impact: "bad" },
-        // 設備品質
-        { id: "L7", text: "設備齊全", impact: "good" },
-        { id: "L8", text: "漲價狂魔", impact: "bad" },
-        // 合約公平
-        { id: "L9", text: "誠實合約", impact: "good" },
-        { id: "L10", text: "合約霸凌", impact: "bad" },
-        // 稅務合規 (新)
-        { id: "L11", text: "稅務天使", impact: "good" },
-        { id: "L12", text: "補助殺手", impact: "bad" }
+        { id: "L1", text: "💸 押金如期返還", impact: "good" },
+        { id: "L2", text: "🔍 押金返還爭議", impact: "bad" },
+        { id: "L3", text: "⚡ 修繕處理迅速", impact: "good" },
+        { id: "L4", text: "⏳ 修繕進度緩慢", impact: "bad" },
+        { id: "L5", text: "🏠 尊重個人隱私", impact: "good" },
+        { id: "L6", text: "👣 未經授權入內", impact: "bad" },
+        { id: "L7", text: "📺 附屬設備完善", impact: "good" },
+        { id: "L8", text: "📈 租金調整頻繁", impact: "bad" },
+        { id: "L9", text: "📜 契約條款透明", impact: "good" },
+        { id: "L10", text: "⚖️ 契約條款爭議", impact: "bad" },
+        { id: "L11", text: "👼 配合申報稅費", impact: "good" },
+        { id: "L12", text: "🚫 拒絕租金補貼", impact: "bad" }
     ]
 };
-
 let currentReportType = 'tenant';
 let selectedTags = new Set();
 
@@ -267,3 +254,94 @@ window.onload = () => {
     updateLiveStats(); // 更新儀表板
 };
 
+// --- 更新結果 UI 的核心函式 ---
+function updateResultsUI(data) {
+    const { score, courtInfo, userInfo } = data;
+    const scoreVal = document.querySelector('.score-value');
+    const statusTag = document.querySelector('.status-tag');
+
+    scoreVal.innerText = score;
+
+    let cfg = { color: 'green', text: '🟢 履約狀況良好' };
+    if (score >= 80) cfg = { color: 'red', text: '🔴 建議加強履約保證' };
+    else if (score >= 50) cfg = { color: 'orange', text: '🟠 風險觀察中' };
+    else if (score >= 20) cfg = { color: 'yellow', text: '🟡 輕微履約爭議' };
+
+    scoreVal.className = `score-value ${cfg.color}`;
+    statusTag.className = `status-tag text-${cfg.color}`;
+    statusTag.innerText = cfg.text;
+
+    // 2. 渲染官方卡片
+    document.getElementById('res-court-title').innerText = courtInfo.title;
+    document.getElementById('res-court-summary').innerText = courtInfo.summary;
+    renderResultTags('res-court-tags', courtInfo.tags, 'high-risk');
+
+    // 3. 渲染民間卡片 (關鍵：顯示你的圖案標籤)
+    if (userInfo.found) {
+        document.querySelector('.user-data').style.display = 'block';
+        document.getElementById('res-user-summary').innerText = userInfo.summary;
+        // 將後端傳回的標籤 ID 轉換為帶圖案的 HTML
+        renderResultTags('res-user-tags', userInfo.tags, 'user-tag');
+    } else {
+        document.querySelector('.user-data').style.display = 'none';
+    }
+}
+
+/**
+ * 輔助函式：將標籤陣列轉換為 UI 元件
+ * @param {string} containerId 容器 ID
+ * @param {Array} tags 標籤文字陣列
+ * @param {string} type 樣式類型
+ */
+function renderResultTags(containerId, tags, type) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = ''; // 清空
+    if (!tags || tags.length === 0) return;
+
+    tags.forEach(tagText => {
+        const span = document.createElement('span');
+        span.className = `ui-tag ${type}`;
+        span.innerText = tagText; // 這裡的 tagText 會自帶圖案，如 "✨ 退租如新"
+        container.appendChild(span);
+    });
+}
+
+// 申訴機制導向
+function openTakedownForm() {
+    alert("已啟動資料查核程序。請將異議說明連同相關證明發送至申訴信箱，我們將於 72 小時內完成查核並暫時隱藏有爭議之資訊。");
+}
+
+// 修改 updateResultsUI，切換到結果頁面
+function updateResultsUI(data) {
+    // ... (原本的計分跟渲染邏輯) ...
+
+    // 4. 顯示申訴按鈕 (只有顯示民間資料時才出現)
+    if (userInfo.found) {
+        document.getElementById('res-user-data').style.display = 'block';
+        // 這裡的 userInfo.tags 已經是 HTML 標籤了
+        document.getElementById('res-user-tags').innerHTML = userInfo.tags;
+
+        // --- 新增：顯示申訴區塊 ---
+        const footer = document.querySelector('.legal-footer');
+        // 確保 footer 存在且原本是隱藏的
+        if (footer) {
+            footer.style.display = 'block';
+        }
+    } else {
+        document.getElementById('res-user-data').style.display = 'none';
+        // 隱藏申訴區塊
+        const footer = document.querySelector('.legal-footer');
+        if (footer) {
+            footer.style.display = 'none';
+        }
+    }
+}
+
+// 修改 resetApp，記得隱藏 footer
+function resetApp() {
+    // ... (切換畫面邏輯) ...
+    const footer = document.querySelector('.legal-footer');
+    if (footer) {
+        footer.style.display = 'none'; // 回到搜尋頁時隱藏申訴區塊
+    }
+}
