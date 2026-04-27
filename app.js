@@ -112,25 +112,33 @@ function updateResultsUI(input) {
         userCard.className = 'result-card user-data border-' + cfg.color;
 
         if (cfg.score === 99) {
-            // 1. 法院判決紀錄：給出相關網址即可不需文字敘述
-            courtCard.querySelector('h3').style.display = "none"; // 隱藏原標題
-            courtCard.querySelector('.summary').innerHTML = '<a href="https://judgment.judicial.gov.tw/FJUD/default.aspx" target="_blank" style="color: #3498db; word-break: break-all;">https://judgment.judicial.gov.tw/FJUD/ (示意網址)</a>';
-            courtCard.querySelector('.tag-row').innerHTML = ''; // 清空標籤
+            // 1. 法院判決紀錄：顯示示意連結，隱藏「查無」文字
+            const courtLink  = document.getElementById('res-court-link');
+            const courtEmpty = document.getElementById('res-court-empty');
+            if (courtLink) {
+                courtLink.href        = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
+                courtLink.innerText   = 'https://judgment.judicial.gov.tw/FJUD/ (示意網址)';
+                courtLink.style.display = 'block';
+            }
+            if (courtEmpty) courtEmpty.style.display = 'none';
 
-            // 2. 民間回報：顯示幾筆回報、給標籤，不給文字
-            userCard.style.display = "block";
-            userCard.querySelector('h3').innerText = "共 1 筆回報";
-            userCard.querySelector('h3').style.display = "block";
-            userCard.querySelector('.summary').style.display = "none"; // 隱藏文字敘述
-            userCard.querySelector('.tag-row').innerHTML = `<span class="ui-tag user-tag">📦 雜物領主</span>`;
+            // 2. 民間回報：顯示筆數 + 標籤
+            userCard.style.display = 'block';
+            const userTitle = document.getElementById('res-user-title');
+            if (userTitle) userTitle.innerText = '共 1 筆回報';
+            document.getElementById('res-user-tags').innerHTML =
+                `<span class="ui-tag user-tag">📦 雜物領主</span>`;
 
             if (legalFooter) legalFooter.style.display = 'block';
         } else {
-            courtCard.querySelector('h3').style.display = "none";
-            courtCard.querySelector('.summary').innerText = "查無相關判決網址";
-            courtCard.querySelector('.tag-row').innerHTML = '';
+            // 1. 法院判決紀錄：顯示「查無」文字，隱藏連結
+            const courtLink  = document.getElementById('res-court-link');
+            const courtEmpty = document.getElementById('res-court-empty');
+            if (courtLink)  courtLink.style.display  = 'none';
+            if (courtEmpty) courtEmpty.style.display = 'block';
 
-            userCard.style.display = "none";
+            // 2. 民間回報：隱藏整張卡片
+            userCard.style.display = 'none';
             if (legalFooter) legalFooter.style.display = 'none';
         }
 
