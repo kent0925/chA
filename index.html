@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,6 +8,7 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div id="app">
         <header>
@@ -17,11 +19,11 @@
         <div class="stats-dashboard">
             <div class="stat-box official-stat">
                 <div class="stat-title">🏛️ 官方法院數據</div>
-                <div class="stat-number">5,012,345 <span class="stat-unit">筆</span></div>
+                <div class="stat-number"><span id="stat-court-num">載入中</span> <span class="stat-unit">筆</span></div>
             </div>
             <div class="stat-box user-stat">
                 <div class="stat-title">👤 民間回報數據</div>
-                <div class="stat-number">1,204 <span class="stat-unit">筆</span></div>
+                <div class="stat-number"><span id="stat-user-num">載入中</span> <span class="stat-unit">筆</span></div>
             </div>
         </div>
 
@@ -31,94 +33,112 @@
                     <label>對象姓名 <span class="required">*</span></label>
                     <input type="text" id="in-name" placeholder="請輸入真實姓名" required>
                 </div>
-                <div class="input-group">
-                    <label>生活圈地區 <span class="required">*</span></label>
-                    <select id="in-area" required>
-                        <option value="" disabled selected>請選擇地區</option>
-                        <option value="PCV_PCDV">新北：板橋/中永和/土城</option>
-                        <option value="SNC_PCDV">新北：三重/蘆洲/新莊</option>
-                        <option value="TPEV_TPDV">台北：中正/大安/萬華</option>
-                        <option value="SLV_SLDV">台北：士林/北投/內湖</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>目測年次區間</label>
-                    <select id="in-age">
-                        <option value="ALL">不限年次</option>
-                        <option value="90s">81-90 年次</option>
-                        <option value="80s">71-80 年次</option>
-                        <option value="70s">61-70 年次</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>電話末四碼 (選填)</label>
-                    <input type="tel" id="in-phone" placeholder="精準比對民間數據用" maxlength="4">
-                </div>
-                <button class="btn-primary" onclick="handleSearch()">🔍 開始安全比對</button>
-                <div class="divider"><span>或</span></div>
-                <button class="btn-outline" onclick="openReportView()">✍️ 建立民間履約回報</button>
+                <select id="in-area" required>
+                    <option value="" disabled selected>請選擇對象生活圈</option>
+                    <option value="AREA_PCDV">新北核心 (板橋/中永和/土城/三重/蘆洲)</option>
+                    <option value="AREA_TPDV">台北核心 (中正/大安/萬華/文山/新店)</option>
+                    <option value="AREA_SLDV">台北北區 (士林/北投/內湖/南港)</option>
+                    <option value="AREA_TYDV">桃園/中壢生活圈</option>
+                    <option value="AREA_JCDV">新竹/竹北生活圈</option>
+                    <option value="AREA_TCDV">台中核心生活圈</option>
+                    <option value="AREA_TNDV">台南核心生活圈</option>
+                    <option value="AREA_KSDV">高雄核心生活圈</option>
+                </select>
             </div>
-        </section>
+            <div class="input-group">
+                <label>目測年齡區間</label>
+                <select id="in-age">
+                    <option value="ALL">不限年齡</option>
+                    <option value="AGE_20">20 - 30 歲 (社會新鮮人)</option>
+                    <option value="AGE_30">31 - 40 歲 (壯年主力)</option>
+                    <option value="AGE_40">41 - 50 歲 (資深租客)</option>
+                    <option value="AGE_50">51 歲以上</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>電話末四碼 (選填)</label>
+                <input type="tel" id="in-phone" placeholder="精準比對民間數據用" maxlength="4">
+            </div>
+            <button class="btn-primary" onclick="handleSearch()">🔍 開始安全比對</button>
+            <div class="divider"><span>或</span></div>
+            <button class="btn-outline" onclick="openReportView()">✍️ 建立民間履約回報</button>
+    </div>
+    </section>
 
-        <section id="view-loading" class="view hidden">
-            <div class="loader-content">
-                <div class="spinner"></div>
-                <p id="loading-text">🔒 正在進行端對端安全編碼...</p>
-            </div>
-        </section>
+    <section id="view-loading" class="view hidden">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p id="loading-text">🔒 正在進行端對端安全編碼...</p>
+        </div>
+    </section>
 
-        <section id="view-results" class="view hidden">
-            <div class="score-board">
-                <span class="score-label">風險評等</span>
-                <div class="score-value">--</div>
-                <div class="status-tag">分析中...</div>
-            </div>
-            <div class="result-card court-data">
-                <div class="card-tag">🏛️ 法院公開紀錄</div>
-                <h3>--</h3>
-                <p class="summary">--</p>
-                <div class="tag-row"></div>
-            </div>
-            <div class="result-card user-data">
-                <div class="card-tag" style="color: #8a6d3b;">👤 民間回報紀錄</div>
-                <h3>--</h3>
-                <p class="summary">--</p>
-                <div class="tag-row"></div>
-            </div>
-            <button class="btn-secondary" onclick="resetApp()">重新查詢</button>
-        </section>
+    <section id="view-results" class="view hidden">
+        <div class="score-board">
+            <span class="score-label">風險評等</span>
+            <div class="score-value">--</div>
+            <div class="status-tag">分析中...</div>
+        </div>
+        <div class="result-card court-data">
+            <div class="card-tag">🏛️ 法院公開紀錄</div>
+            <h3>--</h3>
+            <p class="summary">--</p>
+            <div class="tag-row"></div>
+        </div>
+        <div class="result-card user-data">
+            <div class="card-tag" style="color: #8a6d3b;">👤 民間回報紀錄</div>
+            <h3>--</h3>
+            <p class="summary">--</p>
+            <div class="tag-row"></div>
+        </div>
+        <button class="btn-secondary" onclick="resetApp()">重新查詢</button>
+    </section>
 
-        <section id="view-report" class="view hidden">
-            <div class="card user-data">
-                <div class="card-tag" style="color: #8a6d3b;">👤 建立民間回報</div>
-                <h3>新增房客履約紀錄</h3>
-                <p class="sub-text">個資將在本機加鹽雜湊 (Salted Hash) 後才上傳，原始明文絕不離開手機。</p>
-                <div class="input-group">
-                    <label>對象姓名 <span class="required">*</span></label>
-                    <input type="text" id="report-name" placeholder="請輸入真實姓名" required>
-                </div>
-                <div class="input-group">
-                    <label>電話末四碼 <span class="required">*</span></label>
-                    <input type="tel" id="report-phone" placeholder="例如: 5678" maxlength="4" required>
-                </div>
-                <div class="input-group">
-                    <label>主要違約行為 (可複選)</label>
-                    <div class="checkbox-group">
-                        <label class="check-item"><input type="checkbox" value="欠租"> 💸 惡意欠租</label>
-                        <label class="check-item"><input type="checkbox" value="毀損"> 🛠️ 房屋損毀</label>
-                        <label class="check-item"><input type="checkbox" value="轉租"> 🛑 非法轉租</label>
-                        <label class="check-item"><input type="checkbox" value="噪音"> 🔊 噪音/擾鄰</label>
-                    </div>
-                </div>
-                <button class="btn-submit-yellow" onclick="submitReport()">🔒 加密送出回報</button>
-                <button class="btn-text-only" onclick="resetApp()">取消並返回</button>
-            </div>
-        </section>
+    <section id="view-report" class="view hidden">
+        <div class="card user-data">
+            <div class="card-tag">👤 雙向誠信回報</div>
 
-        <footer>
-            <p class="legal-text">去識別化流水編號 | 數據來源：司法院公開判決書</p>
-        </footer>
+            <div class="identity-switch">
+                <button id="btn-report-tenant" class="active" onclick="setReportType('tenant')">回報房客</button>
+                <button id="btn-report-landlord" onclick="setReportType('landlord')">回報房東</button>
+            </div>
+
+            <div class="input-group">
+                <label id="lbl-name">對象姓名 <span class="required">*</span></label>
+                <input type="text" id="report-name" placeholder="請輸入姓名" required>
+            </div>
+
+            <div class="input-group">
+                <label id="lbl-age">對象目測年齡 <span class="required">*</span></label>
+                <select id="report-age" required>
+                    <option value="" disabled selected>請選擇年齡區間</option>
+                    <option value="AGE_20">20 - 30 歲</option>
+                    <option value="AGE_30">31 - 40 歲</option>
+                    <option value="AGE_40">41 - 50 歲</option>
+                    <option value="AGE_50">51 歲以上</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label id="lbl-phone">電話末四碼 <span class="required">*</span></label>
+                <input type="tel" id="report-phone" placeholder="末四碼" maxlength="4" required>
+            </div>
+
+            <div class="input-group">
+                <label>特徵註解 (好壞皆可複選)</label>
+                <div id="tag-container" class="tag-selector-grid">
+                </div>
+            </div>
+
+            <button class="btn-submit-yellow" onclick="submitReport()">🔒 加密並提交回報</button>
+            <button class="btn-text-only" onclick="resetApp()">取消</button>
+        </div>
+    </section>
+
+    <footer>
+        <p class="legal-text">去識別化流水編號 | 數據來源：司法院公開判決書</p>
+    </footer>
     </div>
     <script src="app.js"></script>
 </body>
+
 </html>
