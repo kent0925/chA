@@ -147,16 +147,16 @@
 
             <div class="result-card court-data">
                 <div class="card-tag">🏛️ 法院判決紀錄</div>
-                <h3 id="res-court-title">掃描完成</h3>
-                <p class="summary" id="res-court-summary">正在讀取官方資料庫...</p>
-                <div class="tag-row" id="res-court-tags"></div>
+                <a id="res-court-link" href="#" target="_blank"
+                    style="display:none; color: #3498db; word-break: break-all; font-size: 14px; margin-top: 10px;"></a>
+                <p id="res-court-empty" style="margin-top:10px; color: #7f8c8d; font-size: 14px;">查無相關判決網址</p>
             </div>
 
             <div class="result-card user-data">
-                <div class="card-tag">👤 雙向誠信回報 (Shadow_Lab)</div>
-                <h3 id="res-user-title">特徵掃描</h3>
-                <p class="summary" id="res-user-summary">正在比對雙向標籤資料...</p>
-                <div class="tag-row" id="res-user-tags"></div>
+                <div class="card-tag">👤 民間履約回報 (Shadow_Lab)</div>
+                <h3 id="res-user-title" style="margin-bottom: 10px;">共 0 筆回報</h3>
+                <div class="tag-row" id="res-user-tags">
+                </div>
             </div>
 
             <button class="btn-primary" id="btn-reset" onclick="resetApp()">重新查詢</button>
@@ -164,7 +164,8 @@
             <div class="legal-footer">
                 <div class="takedown-box">
                     <p>對此結果有異議？</p>
-                    <button class="btn-small-outline" id="btn-takedown" onclick="openTakedownForm()">🚩 提出資料查核申請</button>
+                    <button class="btn-small-outline" id="btn-takedown" onclick="openTakedownForm()">🚩
+                        提出資料查核申請</button>
                 </div>
 
                 <div class="disclaimer">
