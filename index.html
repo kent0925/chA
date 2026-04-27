@@ -63,7 +63,11 @@
                         placeholder="請輸入 4 位數字" oninput="if(value.length>4)value=value.slice(0,4); if(value<0)value=0;">
                 </div>
 
-                <button onclick="handleSearch()">開始比對</button>
+                <button class="btn-primary" onclick="handleSearch()">🔍 開始安全比對</button>
+
+                <div class="divider"><span>或</span></div>
+
+                <button class="btn-outline" onclick="openReportView()">✍️ 建立民間履約回報</button>
             </div>
         </section>
 

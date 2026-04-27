@@ -204,16 +204,17 @@ async function submitReport() {
 }
 
 // --- 7. 通用輔助函式 ---
+// 開啟回報視圖
 function openReportView() {
-    switchView('view-report');
-    renderTags(); // 務必重新渲染，標籤才會出現
+    switchView('view-report'); // 切換到回報房間
+    renderTags();              // 💡 必須呼叫：標籤才會動態生成並顯示
 }
 
+// 返回搜尋視圖 (通常放在回報頁面的「取消」按鈕)
 function resetApp() {
-    switchView('view-search'); // 返回搜尋畫面
-    // 清空輸入
+    switchView('view-search'); // 回到搜尋房間
+    // 清空輸入框（選填，保持乾淨）
     document.querySelectorAll('input').forEach(i => i.value = '');
-    document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
     selectedTags.clear();
 }
 
