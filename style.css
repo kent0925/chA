@@ -1,15 +1,21 @@
+/* ============================================================
+   全域設計令牌
+   ============================================================ */
 :root {
-    --primary: #005088;
-    --secondary: #f1c40f;
-    --text: #2c3e50;
-    --bg: #f8f9fa;
-    --danger: #e74c3c;
-    --level-green: #27ae60;
+    --primary:      #005088;
+    --secondary:    #f1c40f;
+    --text:         #2c3e50;
+    --bg:           #f8f9fa;
+    --danger:       #e74c3c;
+    --level-green:  #27ae60;
     --level-yellow: #f39c12;
     --level-orange: #e67e22;
-    --level-red: #e74c3c;
+    --level-red:    #e74c3c;
 }
 
+/* ============================================================
+   基礎排版
+   ============================================================ */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg);
@@ -38,6 +44,9 @@ body {
     color: var(--danger);
 }
 
+/* ============================================================
+   頁首
+   ============================================================ */
 header h1 {
     color: var(--primary);
     margin-bottom: 5px;
@@ -50,6 +59,9 @@ header p {
     margin: 0;
 }
 
+/* ============================================================
+   統計儀表板
+   ============================================================ */
 .stats-dashboard {
     display: flex;
     gap: 10px;
@@ -84,11 +96,15 @@ header p {
     font-weight: 900;
 }
 
+/* ============================================================
+   卡片 & 輸入群組
+   ============================================================ */
 .card {
     background: white;
     padding: 20px;
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
 }
 
 .input-group {
@@ -102,16 +118,37 @@ header p {
     font-size: 14px;
 }
 
+/* ============================================================
+   表單元素（input / select）
+   針對 iOS 優化：字體 >= 16px 防止自動縮放，移除原生樣式
+   ============================================================ */
 input,
 select {
     width: 100%;
-    padding: 12px;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: block;
+    height: 48px;
+    padding: 10px 30px 10px 10px; /* 右側為下拉箭頭留空間 */
     border: 1px solid #ddd;
     border-radius: 8px;
-    font-size: 16px;
-    box-sizing: border-box;
+    font-size: 16px !important;   /* 防止 iOS 自動縮放 */
+    background-color: white;
+
+    /* 移除 iOS/Chrome 原生樣式 */
+    -webkit-appearance: none;
+    appearance: none;
+
+    /* 自訂下拉箭頭（因 appearance:none 移除了原生箭頭） */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ccc%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
 }
 
+/* ============================================================
+   按鈕
+   ============================================================ */
 button {
     width: 100%;
     padding: 15px;
@@ -151,6 +188,25 @@ button {
     font-size: 14px;
 }
 
+.btn-small-outline {
+    background: none;
+    border: 1px solid #bdc3c7;
+    color: #7f8c8d;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: auto;
+    margin-top: 0;
+}
+
+.btn-small-outline:hover {
+    background: #f1f2f6;
+}
+
+/* ============================================================
+   分隔線
+   ============================================================ */
 .divider {
     display: flex;
     align-items: center;
@@ -170,6 +226,9 @@ button {
     padding: 0 10px;
 }
 
+/* ============================================================
+   載入動畫
+   ============================================================ */
 .loader-content {
     text-align: center;
     padding: 50px 0;
@@ -186,28 +245,40 @@ button {
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-.score-board {
+/* ============================================================
+   結果頁面
+   ============================================================ */
+.result-header {
     text-align: center;
     padding-bottom: 20px;
+}
+
+.score-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score-label {
+    font-size: 13px;
+    color: #7f8c8d;
+    margin-bottom: 4px;
 }
 
 .score-value {
     font-size: 64px;
     font-weight: 900;
+    transition: all 0.5s ease-in-out;
 }
 
 .status-tag {
     font-weight: bold;
     font-size: 18px;
+    margin-top: 6px;
 }
 
 .result-card {
@@ -237,17 +308,45 @@ button {
     margin-bottom: 15px;
 }
 
-.ui-tag {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    margin: 0 4px 4px 0;
-    border: 1px solid;
-    font-weight: bold;
+.tag-row {
+    margin-top: 8px;
 }
 
-.ui-tag[data-type="high-risk"] {
+/* ============================================================
+   風險等級色彩工具類
+   ============================================================ */
+.text-green  { color: var(--level-green)  !important; }
+.text-yellow { color: var(--level-yellow) !important; }
+.text-orange { color: var(--level-orange) !important; }
+.text-red    { color: var(--level-red)    !important; }
+
+.green  { color: var(--level-green)  !important; }
+.yellow { color: var(--level-yellow) !important; }
+.orange { color: var(--level-orange) !important; }
+.red    { color: var(--level-red)    !important; }
+
+.border-green  { border-left-color: var(--level-green)  !important; }
+.border-yellow { border-left-color: var(--level-yellow) !important; }
+.border-orange { border-left-color: var(--level-orange) !important; }
+.border-red    { border-left-color: var(--level-red)    !important; }
+
+/* ============================================================
+   UI 標籤（查詢結果用）
+   ============================================================ */
+.ui-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid transparent;
+}
+
+/* 舊版 data-type 屬性選擇器（相容既有 HTML） */
+.ui-tag[data-type="high-risk"],
+.ui-tag.high-risk {
     background: #fdedec;
     color: var(--level-red);
     border-color: #fadbd8;
@@ -271,6 +370,111 @@ button {
     border-color: #d4efdf;
 }
 
+/* 民間標籤（中性色） */
+.ui-tag.user-tag {
+    background: #f1f2f6;
+    color: #2f3542;
+    border-color: #dfe4ea;
+}
+
+/* ============================================================
+   身分切換開關（回報頁）
+   ============================================================ */
+.identity-switch {
+    display: flex;
+    background: #eee;
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 20px;
+}
+
+.identity-switch button {
+    flex: 1;
+    padding: 10px;
+    font-size: 13px;
+    border-radius: 6px;
+    background: none;
+    margin: 0;
+    color: #7f8c8d;
+    width: auto;
+}
+
+.identity-switch button.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================
+   標籤選擇器（回報頁）
+   ============================================================ */
+.tag-selector-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* 標籤分類標題 */
+.tag-group-label {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding: 4px 10px;
+    padding-left: 5px;
+    border-left: 3px solid currentColor;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+
+/* 覆寫 .tag-group-label 配合 .text-green / .text-red 的 border-color */
+.tag-group-label.text-green { border-color: var(--level-green); }
+.tag-group-label.text-red   { border-color: var(--level-red);   }
+
+/* 標籤膠囊 */
+.tag-chip {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    background: #fdfdfd;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    /* 防止長按選取文字 & 移除行動端點擊後的藍框 */
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Hover 微互動 */
+.tag-chip[data-impact="good"]:hover { border-color: var(--level-green); }
+.tag-chip[data-impact="bad"]:hover  { border-color: var(--danger); }
+
+/* 選中狀態 */
+.tag-chip.selected {
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tag-chip[data-impact="good"].selected {
+    background: #eafaf1;
+    border-color: var(--level-green);
+    color: var(--level-green);
+}
+
+.tag-chip[data-impact="bad"].selected {
+    background: #fdedec;
+    border-color: var(--level-red);
+    color: var(--level-red);
+}
+
+/* ============================================================
+   其他工具樣式
+   ============================================================ */
 .checkbox-group {
     display: flex;
     flex-direction: column;
@@ -288,266 +492,9 @@ button {
     cursor: pointer;
 }
 
-.legal-text {
-    font-size: 10px;
-    color: #bdc3c7;
-    text-align: center;
-    margin-top: 30px;
-}
-
-.text-green {
-    color: var(--level-green) !important;
-}
-
-.text-yellow {
-    color: var(--level-yellow) !important;
-}
-
-.text-orange {
-    color: var(--level-orange) !important;
-}
-
-.text-red {
-    color: var(--level-red) !important;
-}
-
-.green {
-    color: var(--level-green) !important;
-}
-
-.yellow {
-    color: var(--level-yellow) !important;
-}
-
-.orange {
-    color: var(--level-orange) !important;
-}
-
-.red {
-    color: var(--level-red) !important;
-}
-
-.border-green {
-    border-left-color: var(--level-green) !important;
-}
-
-.border-yellow {
-    border-left-color: var(--level-yellow) !important;
-}
-
-.border-orange {
-    border-left-color: var(--level-orange) !important;
-}
-
-.border-red {
-    border-left-color: var(--level-red) !important;
-}
-
-/* 身分切換開關 */
-.identity-switch {
-    display: flex;
-    background: #eee;
-    border-radius: 8px;
-    padding: 4px;
-    margin-bottom: 20px;
-}
-
-.identity-switch button {
-    flex: 1;
-    padding: 10px;
-    font-size: 13px;
-    border-radius: 6px;
-    background: none;
-    margin: 0;
-    color: #7f8c8d;
-}
-
-.identity-switch button.active {
-    background: white;
-    color: var(--primary);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-/* 標籤選擇器網格 */
-.tag-selector-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.tag-chip {
-    padding: 8px 12px;
-    border-radius: 20px;
-    border: 1px solid #ddd;
-    background: white;
-    font-size: 13px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.tag-chip.selected {
-    background: var(--secondary);
-    border-color: var(--secondary);
-    color: #5c4b12;
-    font-weight: bold;
-}
-
-/* 區分好壞註解的微色調 (選填) */
-.tag-chip[data-impact="bad"]:hover {
-    border-color: var(--danger);
-}
-
-.tag-chip[data-impact="good"]:hover {
-    border-color: var(--level-green);
-}
-
-/* 標籤基礎樣式 */
-.tag-chip {
-    padding: 8px 14px;
-    border-radius: 20px;
-    border: 1px solid #eee;
-    background: #fdfdfd;
-    font-size: 13px;
-    cursor: pointer;
-    transition: 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* 選中狀態 */
-.tag-chip.selected {
-    font-weight: bold;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* 好標籤選中：綠色系 */
-.tag-chip[data-impact="good"].selected {
-    background: #eafaf1;
-    border-color: var(--level-green);
-    color: var(--level-green);
-}
-
-/* 壞標籤選中：紅色系 */
-.tag-chip[data-impact="bad"].selected {
-    background: #fdedec;
-    border-color: var(--level-red);
-    color: var(--level-red);
-}
-
-/* 確保下拉選單與輸入框寬度一致且不會溢出 */
-input,
-select {
-    width: 100% !important;
-    /* 強制滿寬 */
-    max-width: 100%;
-    box-sizing: border-box;
-    /* 關鍵：讓 padding 不會撐大寬度 */
-    display: block;
-    height: 48px;
-    /* 固定高度讓視覺統一 */
-    font-size: 16px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-}
-
-/* 針對 iOS 的深度優化 */
-select,
-input {
-    /* 1. 防止點擊時自動縮放：字體必須大於等於 16px */
-    font-size: 16px !important;
-
-    /* 2. 移除 iOS 預設的內陰影與圓角樣式 */
-    -webkit-appearance: none;
-    appearance: none;
-
-    /* 3. 確保背景與邊框一致 */
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-
-    /* 4. 加入自定義箭頭 (因為 appearance:none 會把原生的箭頭拔掉) */
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ccc%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 16px;
-    padding-right: 30px;
-    /* 為箭頭留位子 */
-}
-
-.tag-group-label {
-    font-size: 13px;
-    font-weight: bold;
-    margin-bottom: 8px;
-    padding-left: 5px;
-    border-left: 3px solid;
-}
-
-.text-green {
-    color: var(--level-green);
-    border-color: var(--level-green);
-}
-
-.text-red {
-    color: var(--level-red);
-    border-color: var(--level-red);
-}
-
-/* 保持膠囊按鈕樣式 */
-.tag-selector-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-/* 讓標籤在手機上更易點選：增加點擊區域 (Touch Target) */
-.tag-chip {
-    user-select: none;
-    /* 防止長按選取文字 */
-    -webkit-tap-highlight-color: transparent;
-    /* 移除行動端點擊後的藍框 */
-}
-
-/* 強化分類標題的視覺感 */
-.tag-group-label {
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    background: #f8f9fa;
-    padding: 4px 10px;
-    border-radius: 4px;
-}
-
-.ui-tag {
-    display: inline-block;
-    padding: 4px 10px;
-    margin-right: 6px;
-    margin-bottom: 6px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-/* 法院標籤樣式 (通常是紅色警示) */
-.ui-tag.high-risk {
-    background: #ffeded;
-    color: #e74c3c;
-    border: 1px solid #fab1a0;
-}
-
-/* 民間標籤樣式 (中性色，因為裡面有好有壞) */
-.ui-tag.user-tag {
-    background: #f1f2f6;
-    color: #2f3542;
-    border: 1px solid #dfe4ea;
-}
-
-/* 分數動畫 */
-.score-value {
-    transition: all 0.5s ease-in-out;
-}
-
+/* ============================================================
+   法律頁尾 & 申訴區塊
+   ============================================================ */
 .legal-footer {
     margin-top: 30px;
     padding-top: 20px;
@@ -572,19 +519,15 @@ input {
 .takedown-box p {
     font-size: 13px;
     color: #7f8c8d;
-    margin-bottom: 8px;
+    margin: 0 0 8px 0;
 }
 
-.btn-small-outline {
-    background: none;
-    border: 1px solid #bdc3c7;
-    color: #7f8c8d;
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-small-outline:hover {
-    background: #f1f2f6;
+/* ============================================================
+   頁尾
+   ============================================================ */
+.legal-text {
+    font-size: 10px;
+    color: #bdc3c7;
+    text-align: center;
+    margin-top: 30px;
 }
