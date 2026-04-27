@@ -13,10 +13,14 @@ async function hashData(text) {
 
 // --- 2. 視圖切換管理 ---
 function switchView(viewId) {
-    const views = ['view-search', 'view-loading', 'view-results', 'view-report'];
-    views.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.classList.toggle('hidden', id !== viewId);
+    // 這裡的陣列必須包含你 HTML 中所有的 section ID
+    const allViews = ['view-search', 'view-loading', 'view-results', 'view-report'];
+
+    allViews.forEach(id => {
+        const view = document.getElementById(id);
+        if (view) {
+            view.classList.toggle('hidden', id !== viewId);
+        }
     });
 }
 
@@ -210,10 +214,26 @@ function openReportView() {
 
 // 返回搜尋視圖 (通常放在回報頁面的「取消」按鈕)
 function resetApp() {
-    switchView('view-search'); // 回到搜尋房間
-    // 清空輸入框（選填，保持乾淨）
-    document.querySelectorAll('input').forEach(i => i.value = '');
+    // 1. 切換回搜尋主畫面
+    switchView('view-search');
+
+    // 2. 清空回報頁面的輸入內容，避免下次打開還有舊資料
+    const reportName = document.getElementById('report-name');
+    const reportPhone = document.getElementById('report-phone');
+    const reportAge = document.getElementById('report-age');
+
+    if (reportName) reportName.value = '';
+    if (reportPhone) reportPhone.value = '';
+    if (reportAge) reportAge.value = '';
+
+    // 3. 重置標籤選擇器
     selectedTags.clear();
+
+    // 4. 重新渲染一次標籤（確保選中的藍色高亮消失）
+    renderTags();
+
+    // 5. 捲動回頁面頂部 (手機體驗優化)
+    window.scrollTo(0, 0);
 }
 
 // --- 8. 初始化 ---

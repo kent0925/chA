@@ -116,7 +116,7 @@
                 </div>
 
                 <button class="btn-submit-yellow" onclick="submitReport()">🔒 加密並送出回報</button>
-                <button class="btn-text-only" onclick="resetApp()">取消並返回搜尋</button>
+                <button class="btn-primary" onclick="resetApp()">返回重新搜尋</button>
             </div>
         </section>
 
@@ -153,6 +153,19 @@
             </div>
 
             <button class="btn-primary" onclick="resetApp()">重新查詢</button>
+
+            <div class="legal-footer">
+                <div class="takedown-box">
+                    <p>對此結果有異議？</p>
+                    <button class="btn-small-outline" onclick="openTakedownForm()">🚩 提出資料查核申請</button>
+                </div>
+
+                <div class="disclaimer">
+                    <strong>免責聲明：</strong>
+                    本系統資料來源包含「公開司法判決紀錄」及「匿名使用者自發回報」。資訊內容僅供決策參考，不代表本平台對特定人之人格評價。查詢結果受限於資料更新頻率及姓名雜湊碰撞機率，無法完全保證與當前事實 100%
+                    吻合。使用者應自行評估風險，本平台不負最終履約擔保責任。
+                </div>
+            </div>
         </section>
 
         <section id="view-report" class="view hidden">
@@ -193,6 +206,7 @@
 
                 <button class="btn-submit-yellow" onclick="submitReport()">🔒 加密並提交回報</button>
                 <button class="btn-text-only" onclick="resetApp()">取消</button>
+
             </div>
         </section>
 
