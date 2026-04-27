@@ -220,9 +220,11 @@ function resetApp() {
 
 // --- 8. 初始化 ---
 window.onload = () => {
-    // 預設渲染一次標籤
+    switchView('view-search'); // 初始化只顯示搜尋畫面
     renderTags();
+    updateLiveStats();
 };
+// 預設渲染一次標籤
 
 // --- 9. 即時數據儀表板更新 ---
 async function updateLiveStats() {

@@ -55,95 +55,103 @@
                     <option value="AGE_50">51 歲以上</option>
                 </select>
             </div>
-            <div class="input-group">
-                <label>電話末四碼 (選填)</label>
-                <input type="number" id="in-phone" inputmode="numeric" pattern="[0-9]*" placeholder="請輸入 4 位數字"
-                    oninput="if(value.length>4)value=value.slice(0,4)">
-            </div>
 
-            <div class="input-group">
-                <label>電話末四碼 <span class="required">*</span></label>
-                <input type="number" id="report-phone" inputmode="numeric" pattern="[0-9]*" placeholder="例如: 5678"
-                    oninput="if(value.length>4)value=value.slice(0,4)" required>
-            </div>
-            <button class="btn-primary" onclick="handleSearch()">🔍 開始安全比對</button>
-            <div class="divider"><span>或</span></div>
-            <button class="btn-outline" onclick="openReportView()">✍️ 建立民間履約回報</button>
-    </div>
-    </section>
-
-    <section id="view-loading" class="view hidden">
-        <div class="loader-content">
-            <div class="spinner"></div>
-            <p id="loading-text">🔒 正在進行端對端安全編碼...</p>
-        </div>
-    </section>
-
-    <section id="view-results" class="view hidden">
-        <div class="score-board">
-            <span class="score-label">風險評等</span>
-            <div class="score-value">--</div>
-            <div class="status-tag">分析中...</div>
-        </div>
-        <div class="result-card court-data">
-            <div class="card-tag">🏛️ 法院公開紀錄</div>
-            <h3>--</h3>
-            <p class="summary">--</p>
-            <div class="tag-row"></div>
-        </div>
-        <div class="result-card user-data">
-            <div class="card-tag" style="color: #8a6d3b;">👤 民間回報紀錄</div>
-            <h3>--</h3>
-            <p class="summary">--</p>
-            <div class="tag-row"></div>
-        </div>
-        <button class="btn-secondary" onclick="resetApp()">重新查詢</button>
-    </section>
-
-    <section id="view-report" class="view hidden">
-        <div class="card user-data">
-            <div class="card-tag">👤 雙向誠信回報</div>
-
-            <div class="identity-switch">
-                <button id="btn-report-tenant" class="active" onclick="setReportType('tenant')">回報房客</button>
-                <button id="btn-report-landlord" onclick="setReportType('landlord')">回報房東</button>
-            </div>
-
-            <div class="input-group">
-                <label id="lbl-name">對象姓名 <span class="required">*</span></label>
-                <input type="text" id="report-name" placeholder="請輸入姓名" required>
-            </div>
-
-            <div class="input-group">
-                <label id="lbl-age">對象目測年齡 <span class="required">*</span></label>
-                <select id="report-age" required>
-                    <option value="" disabled selected>請選擇年齡區間</option>
-                    <option value="AGE_20">20 - 30 歲</option>
-                    <option value="AGE_30">31 - 40 歲</option>
-                    <option value="AGE_40">41 - 50 歲</option>
-                    <option value="AGE_50">51 歲以上</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label id="lbl-phone">電話末四碼 <span class="required">*</span></label>
-                <input type="tel" id="report-phone" placeholder="末四碼" maxlength="4" required>
-            </div>
-
-            <div class="input-group">
-                <label>特徵註解 (好壞皆可複選)</label>
-                <div id="tag-container" class="tag-selector-grid">
+            <section id="view-search" class="view">
+                <div class="card">
+                    <h3>🔍 風險比對</h3>
+                    <div class="input-group">
+                        <label>電話末四碼 (選填)</label>
+                        <input type="number" id="in-phone" inputmode="numeric" pattern="[0-9]*" placeholder="請輸入 4 位數字"
+                            oninput="if(value.length>4)value=value.slice(0,4)">
+                    </div>
+                    <button onclick="handleSearch()">開始比對</button>
                 </div>
-            </div>
+            </section>
 
-            <button class="btn-submit-yellow" onclick="submitReport()">🔒 加密並提交回報</button>
-            <button class="btn-text-only" onclick="resetApp()">取消</button>
-        </div>
-    </section>
+            <section id="view-report" class="view hidden">
+                <div class="card">
+                    <h3>✍️ 建立回報</h3>
+                    <div class="input-group">
+                        <label>電話末四碼 <span class="required">*</span></label>
+                        <input type="number" id="report-phone" inputmode="numeric" pattern="[0-9]*"
+                            placeholder="例如: 5678" oninput="if(value.length>4)value=value.slice(0,4)" required>
+                    </div>
+                    <button onclick="submitReport()">送出回報</button>
+                </div>
+            </section>
 
-    <footer>
-        <p class="legal-text">去識別化流水編號 | 數據來源：司法院公開判決書</p>
-    </footer>
+            <section id="view-loading" class="view hidden">
+                <div class="loader-content">
+                    <div class="spinner"></div>
+                    <p id="loading-text">🔒 正在進行端對端安全編碼...</p>
+                </div>
+            </section>
+
+            <section id="view-results" class="view hidden">
+                <div class="score-board">
+                    <span class="score-label">風險評等</span>
+                    <div class="score-value">--</div>
+                    <div class="status-tag">分析中...</div>
+                </div>
+                <div class="result-card court-data">
+                    <div class="card-tag">🏛️ 法院公開紀錄</div>
+                    <h3>--</h3>
+                    <p class="summary">--</p>
+                    <div class="tag-row"></div>
+                </div>
+                <div class="result-card user-data">
+                    <div class="card-tag" style="color: #8a6d3b;">👤 民間回報紀錄</div>
+                    <h3>--</h3>
+                    <p class="summary">--</p>
+                    <div class="tag-row"></div>
+                </div>
+                <button class="btn-secondary" onclick="resetApp()">重新查詢</button>
+            </section>
+
+            <section id="view-report" class="view hidden">
+                <div class="card user-data">
+                    <div class="card-tag">👤 雙向誠信回報</div>
+
+                    <div class="identity-switch">
+                        <button id="btn-report-tenant" class="active" onclick="setReportType('tenant')">回報房客</button>
+                        <button id="btn-report-landlord" onclick="setReportType('landlord')">回報房東</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label id="lbl-name">對象姓名 <span class="required">*</span></label>
+                        <input type="text" id="report-name" placeholder="請輸入姓名" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label id="lbl-age">對象目測年齡 <span class="required">*</span></label>
+                        <select id="report-age" required>
+                            <option value="" disabled selected>請選擇年齡區間</option>
+                            <option value="AGE_20">20 - 30 歲</option>
+                            <option value="AGE_30">31 - 40 歲</option>
+                            <option value="AGE_40">41 - 50 歲</option>
+                            <option value="AGE_50">51 歲以上</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label id="lbl-phone">電話末四碼 <span class="required">*</span></label>
+                        <input type="tel" id="report-phone" placeholder="末四碼" maxlength="4" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>特徵註解 (好壞皆可複選)</label>
+                        <div id="tag-container" class="tag-selector-grid">
+                        </div>
+                    </div>
+
+                    <button class="btn-submit-yellow" onclick="submitReport()">🔒 加密並提交回報</button>
+                    <button class="btn-text-only" onclick="resetApp()">取消</button>
+                </div>
+            </section>
+
+            <footer>
+                <p class="legal-text">去識別化流水編號 | 數據來源：司法院公開判決書</p>
+            </footer>
     </div>
     <script src="app.js"></script>
 </body>
