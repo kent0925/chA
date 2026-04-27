@@ -476,3 +476,28 @@ input {
     padding-right: 30px;
     /* 為箭頭留位子 */
 }
+
+.tag-group-label {
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    padding-left: 5px;
+    border-left: 3px solid;
+}
+
+.text-green {
+    color: var(--level-green);
+    border-color: var(--level-green);
+}
+
+.text-red {
+    color: var(--level-red);
+    border-color: var(--level-red);
+}
+
+/* 保持膠囊按鈕樣式 */
+.tag-selector-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}

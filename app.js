@@ -148,17 +148,22 @@ function setReportType(type) {
 }
 
 function renderTags() {
-    const container = document.getElementById('tag-container');
-    if (!container) return;
-    container.innerHTML = '';
+    const goodContainer = document.getElementById('tag-container-good');
+    const badContainer = document.getElementById('tag-container-bad');
+
+    if (!goodContainer || !badContainer) return;
+
+    // 清空舊標籤
+    goodContainer.innerHTML = '';
+    badContainer.innerHTML = '';
 
     TAG_LIBRARY[currentReportType].forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
         chip.dataset.impact = tag.impact;
-        const icon = tag.impact === 'good' ? '✨' : '⚠️';
-        chip.innerText = `${icon} ${tag.text}`;
+        chip.innerText = tag.text;
 
+        // 點擊邏輯
         chip.onclick = () => {
             if (selectedTags.has(tag.text)) {
                 selectedTags.delete(tag.text);
@@ -168,7 +173,13 @@ function renderTags() {
                 chip.classList.add('selected');
             }
         };
-        container.appendChild(chip);
+
+        // 分流：好標籤進 good 籃子，壞標籤進 bad 籃子
+        if (tag.impact === 'good') {
+            goodContainer.appendChild(chip);
+        } else {
+            badContainer.appendChild(chip);
+        }
     });
 }
 
@@ -255,3 +266,4 @@ window.onload = () => {
     renderTags();    // 渲染標籤
     updateLiveStats(); // 更新儀表板
 };
+
