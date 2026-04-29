@@ -310,7 +310,7 @@
     </div>
 
     <button
-        onclick="forceOpenReport()"
+        onclick="if(typeof forceOpenReport==='function'){forceOpenReport();}else{switchView('view-report');renderTags();}"
         style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: #e74c3c; color: white; border: 2px solid white; padding: 12px 20px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;">
         🔧 開發測試：強制進入建檔
     </button>
