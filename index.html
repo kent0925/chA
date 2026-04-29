@@ -211,8 +211,25 @@
                 </div>
 
                 <div class="input-group">
-                    <label>履約行為特徵 (可複選)</label>
-                    <div id="tag-container" class="tag-selector-grid">
+                    <label>請選擇客觀事實特徵 (可複選) <span class="required">*</span></label>
+                    <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">請依據真實情況，點選符合之履約特徵，建立客觀光譜。</p>
+
+                    <div
+                        style="margin-bottom: 12px; padding: 10px; background: rgba(46, 204, 113, 0.1); border-left: 3px solid #2ecc71; border-radius: 4px;">
+                        <span
+                            style="font-size: 0.85rem; color: #2ecc71; display: block; margin-bottom: 8px; font-weight: bold;">🌟
+                            優良履約特徵</span>
+                        <div class="tags-container" id="report-tags-positive">
+                        </div>
+                    </div>
+
+                    <div
+                        style="padding: 10px; background: rgba(231, 76, 60, 0.1); border-left: 3px solid #e74c3c; border-radius: 4px;">
+                        <span
+                            style="font-size: 0.85rem; color: #e74c3c; display: block; margin-bottom: 8px; font-weight: bold;">⚠️
+                            風險客觀事實</span>
+                        <div class="tags-container" id="report-tags-negative">
+                        </div>
                     </div>
                 </div>
 
@@ -277,6 +294,12 @@
                 style="margin-top: 20px; width: 100%; padding: 14px; background: #3498db; color: #fff; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: background 0.3s;">我已詳閱並了解</button>
         </div>
     </div>
+
+    <button
+        onclick="document.getElementById('view-search').classList.add('hidden'); document.getElementById('view-report').classList.remove('hidden');"
+        style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: #e74c3c; color: white; border: 2px solid white; padding: 12px 20px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;">
+        🔧 開發測試：強制進入建檔
+    </button>
 
 </body>
 
