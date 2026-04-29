@@ -1,6 +1,13 @@
 // --- 0. 核心安全配置 ---
 const SYSTEM_SALT = "TrU$t_Sca1e_8xP@qL9!mZ";
 
+// 🌟 新增：全域使用者身分狀態
+let currentUser = {
+    uid: 'GUEST_DEFAULT',
+    platform: 'WEB',
+    quota: 0 // 預設 0 次
+};
+
 // --- 1. 安全模組：加鹽雜湊 (SHA-256) ---
 async function hashData(text) {
     if (!text) return "";
@@ -9,6 +16,126 @@ async function hashData(text) {
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// 🌟 新增：雙軌環境偵測與登入模組 (LINE / Telegram)
+// 🌟 1. 替換：雙軌環境偵測與登入模組 (加入 WEB 封鎖邏輯)
+async function initializeAuth() {
+    try {
+        // 偵測 A：Telegram (每日 1 次)
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+            const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
+            currentUser = { uid: `TG_${tgUser.id}`, platform: 'TELEGRAM', quota: 1 };
+            console.log("🛡️ Telegram 模式：每日 1 次查詢額度");
+            return;
+        }
+
+        // 偵測 B：LINE (每日 3 次)
+        if (window.liff) {
+            await liff.init({ liffId: "YOUR_LIFF_ID_HERE" });
+            if (liff.isLoggedIn()) {
+                const profile = await liff.getProfile();
+                currentUser = { uid: `LINE_${profile.userId}`, platform: 'LINE', quota: 3 };
+                console.log("🛡️ LINE 模式：每日 3 次查詢額度");
+                return;
+            }
+        }
+
+        // 偵測 C：網頁訪客 (試用版 - 僅能看 Demo)
+        currentUser = { uid: 'TRIAL_USER', platform: 'WEB', quota: 0 };
+        console.log("🛑 訪客模式：啟動試用版引流邏輯");
+
+    } catch (error) {
+        currentUser = { uid: 'TRIAL_USER', platform: 'WEB', quota: 0 };
+    }
+}
+
+// 🌟 2. 替換：搜尋邏輯 (加入 WEB 訪客阻擋)
+async function handleSearch() {
+    // 🌟 訪客試用版邏輯
+    if (currentUser.platform === 'WEB') {
+        switchView('view-loading');
+        setTimeout(() => {
+            // 試用版固定給予「極高風險」的 Demo，讓訪客知道系統的威力
+            updateResultsUI(99);
+            switchView('view-results');
+            // 在結果頁額外提示
+            alert("✨ 這是「試用版預覽」。\n若要查詢真實資料庫，請點擊下方按鈕加入 LINE 或 Telegram 官方帳號。");
+        }, 1500);
+        return;
+    }
+
+    // 🌟 正式用戶 (LINE/TG) 查詢邏輯
+    const name = document.getElementById('in-name').value.trim();
+    const area = document.getElementById('in-area').value;
+    if (!name || !area) return alert("姓名與地區為必填");
+
+    switchView('view-loading');
+    const hName = await hashData(name);
+    const phoneRaw = document.getElementById('in-phone').value;
+    const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(0, 4);
+    const hPhone = phoneClean ? await hashData(phoneClean) : "";
+
+    const payload = {
+        action: "search",
+        uid: currentUser.uid,
+        platform: currentUser.platform,
+        limit: currentUser.quota, // 告訴後端這次查詢應適用的額度
+        hName, hPhone, area
+    };
+
+    console.log("🚀 [正式查詢]", payload);
+
+    // 未來由 GAS 執行：if (todayUsage >= limit) return "額度已滿"
+    // 正式介接 fetch(GAS_URL, {method:'POST', body: JSON.stringify(payload)}) ...
+}
+const name = document.getElementById('in-name').value.trim();
+const area = document.getElementById('in-area').value;
+const ageRange = document.getElementById('in-age').value;
+
+const phoneRaw = document.getElementById('in-phone').value;
+const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(0, 4);
+
+if (!name || !area) return alert("姓名與地區為必填");
+if (phoneRaw && phoneClean.length !== 4) return alert("電話末四碼必須為 4 位數字");
+
+switchView('view-loading');
+const hName = await hashData(name);
+const hPhone = phoneClean ? await hashData(phoneClean) : "";
+
+const payload = {
+    action: "search",
+    uid: currentUser.uid,
+    platform: currentUser.platform,
+    hName,
+    hPhone,
+    area,
+    ageRange
+};
+console.log("🚀 [搜尋 Payload]:", payload);
+
+setTimeout(() => {
+    updateResultsUI(95);
+    switchView('view-results');
+}, 1500);
+
+
+// 🌟 3. 替換：開啟回報視圖 (加入 WEB 訪客阻擋)
+function openReportView() {
+    // 🛑 安全鎖：阻擋一般網頁匿名訪客
+    if (currentUser.platform === 'WEB' || currentUser.uid === 'BLOCKED') {
+        alert("🔒 安全驗證要求：\n請使用 LINE 官方帳號開啟本系統，以解鎖建立民間履約回報之權限。");
+        return;
+    }
+
+    // 🛑 權限不對等防禦：阻擋 Telegram 寫入
+    if (currentUser.platform === 'TELEGRAM') {
+        alert("🔒 訪客權限限制：\n為確保資料庫真實性，Telegram 環境目前僅開放「查詢」功能。若需建立民間履約回報，請改用 LINE 官方帳號開啟本系統。");
+        return;
+    }
+
+    switchView('view-report');
+    renderTags();
 }
 
 // --- 2. 視圖切換管理 ---
@@ -63,7 +190,6 @@ async function handleSearch() {
     const area = document.getElementById('in-area').value;
     const ageRange = document.getElementById('in-age').value;
 
-    // 取搜尋頁的電話欄位（選填），強制只留數字並限 4 碼
     const phoneRaw = document.getElementById('in-phone').value;
     const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(0, 4);
 
@@ -74,20 +200,25 @@ async function handleSearch() {
     const hName = await hashData(name);
     const hPhone = phoneClean ? await hashData(phoneClean) : "";
 
-    // 未來將此 Payload 透過 fetch 發送到 GAS Web App URL
-    console.log("🚀 [搜尋 Payload]:", { action: "search", hName, hPhone, area, ageRange });
+    // 🌟 修正：將 UID 與平台資訊加入搜尋封包
+    const payload = {
+        action: "search",
+        uid: currentUser.uid,
+        platform: currentUser.platform,
+        hName,
+        hPhone,
+        area,
+        ageRange
+    };
+    console.log("🚀 [搜尋 Payload]:", payload);
 
-    // 模擬等待 (正式上線後改為 fetch 呼叫)
     setTimeout(() => {
-        updateResultsUI(95); // 模擬演示用，未來由 GAS 回傳結果
+        updateResultsUI(95);
         switchView('view-results');
     }, 1500);
 }
 
 // --- 5. 結果渲染引擎 ---
-// 支援兩種呼叫方式：
-//   updateResultsUI(Number)   → Demo 模式（以數值模擬風險分數）
-//   updateResultsUI(Object)   → 正式模式（由 GAS 回傳結構化資料）
 function updateResultsUI(input) {
     const scoreVal = document.querySelector('.score-value');
     const statusTag = document.querySelector('.status-tag');
@@ -95,116 +226,116 @@ function updateResultsUI(input) {
     const userCard = document.querySelector('.user-data');
     const legalFooter = document.querySelector('.legal-footer');
 
-    // ── 模式判斷 ──
     if (typeof input === 'number') {
-        // Demo 模式：根據數值決定風險等級
+        // Demo 模式
         const R = input;
-        let cfg = { score: 5, color: 'green', text: '👼 天使小翅膀' };
-        if (R > 80) cfg = { score: 99, color: 'red', text: '🦖 哥吉拉噴火' };
-        else if (R > 50) cfg = { score: 60, color: 'orange', text: '💣 冒煙的引信' };
-        else if (R > 20) cfg = { score: 30, color: 'yellow', text: '🐱 溫和的小貓' };
 
-        scoreVal.innerText = cfg.score;
-        scoreVal.className = 'score-value ' + cfg.color;
-        statusTag.innerText = cfg.text;
-        statusTag.className = 'status-tag text-' + cfg.color;
-        courtCard.className = 'result-card court-data border-' + cfg.color;
-        userCard.className = 'result-card user-data border-' + cfg.color;
+        // 💡 修正：全面改為中立的履約狀態描述
+        let cfg = { score: 5, color: 'green', text: '🟢 履約狀況良好' };
+        if (R > 80) cfg = { score: 99, color: 'red', text: '🔴 建議加強履約保證' };
+        else if (R > 50) cfg = { score: 60, color: 'orange', text: '🟠 履約特徵觀察中' };
+        else if (R > 20) cfg = { score: 30, color: 'yellow', text: '🟡 輕微履約爭議' };
+        if (scoreVal) {
+            scoreVal.innerText = cfg.score;
+            scoreVal.className = 'score-value ' + cfg.color;
+        }
+        if (statusTag) {
+            statusTag.innerText = cfg.text;
+            statusTag.className = 'status-tag text-' + cfg.color;
+        }
+        if (courtCard) courtCard.className = 'result-card court-data border-' + cfg.color;
+        if (userCard) userCard.className = 'result-card user-data border-' + cfg.color;
 
         if (cfg.score === 99) {
-            // 1. 法院判決紀錄：顯示示意連結，隱藏「查無」文字
-            const courtLink  = document.getElementById('res-court-link');
+            const courtLink = document.getElementById('res-court-link');
             const courtEmpty = document.getElementById('res-court-empty');
             if (courtLink) {
-                courtLink.href        = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
-                courtLink.innerText   = 'https://judgment.judicial.gov.tw/FJUD/ (示意網址)';
+                courtLink.href = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
+                courtLink.innerText = 'https://judgment.judicial.gov.tw/FJUD/ (示意網址)';
                 courtLink.style.display = 'block';
+                courtLink.setAttribute('rel', 'noopener noreferrer'); // 隱形斗篷
             }
             if (courtEmpty) courtEmpty.style.display = 'none';
 
-            // 2. 民間回報：顯示筆數 + 標籤
-            userCard.style.display = 'block';
+            if (userCard) userCard.style.display = 'block';
             const userTitle = document.getElementById('res-user-title');
             if (userTitle) userTitle.innerText = '共 1 筆回報';
-            document.getElementById('res-user-tags').innerHTML =
-                `<span class="ui-tag user-tag">📦 雜物領主</span>`;
+            const userTagsRow = document.getElementById('res-user-tags');
+            if (userTagsRow) userTagsRow.innerHTML = `<span class="ui-tag user-tag">📦 雜物領主</span>`;
 
             if (legalFooter) legalFooter.style.display = 'block';
         } else {
-            // 1. 法院判決紀錄：顯示「查無」文字，隱藏連結
-            const courtLink  = document.getElementById('res-court-link');
+            const courtLink = document.getElementById('res-court-link');
             const courtEmpty = document.getElementById('res-court-empty');
-            if (courtLink)  courtLink.style.display  = 'none';
+            if (courtLink) courtLink.style.display = 'none';
             if (courtEmpty) courtEmpty.style.display = 'block';
 
-            // 2. 民間回報：隱藏整張卡片
-            userCard.style.display = 'none';
+            if (userCard) userCard.style.display = 'none';
             if (legalFooter) legalFooter.style.display = 'none';
         }
-
     } else {
-        // 正式模式：由 GAS 回傳的結構化物件
         const { score, courtInfo, userInfo } = input;
-
         let cfg = { color: 'green', text: '🟢 履約狀況良好' };
         if (score >= 80) cfg = { color: 'red', text: '🔴 建議加強履約保證' };
         else if (score >= 50) cfg = { color: 'orange', text: '🟠 風險觀察中' };
         else if (score >= 20) cfg = { color: 'yellow', text: '🟡 輕微履約爭議' };
 
-        scoreVal.innerText = score;
-        scoreVal.className = `score-value ${cfg.color}`;
-        statusTag.className = `status-tag text-${cfg.color}`;
-        statusTag.innerText = cfg.text;
-        courtCard.className = `result-card court-data border-${cfg.color}`;
-        userCard.className = `result-card user-data border-${cfg.color}`;
-
-        // 1. 渲染官方卡片：給出相關網址即可不需文字敘述
-        courtCard.querySelector('h3').style.display = 'none'; // 隱藏標題
-        if (courtInfo && courtInfo.url) {
-            courtCard.querySelector('.summary').innerHTML = `<a href="${courtInfo.url}" target="_blank" style="color: #3498db; word-break: break-all;">${courtInfo.url}</a>`;
-            courtCard.querySelector('.summary').style.display = 'block';
-        } else {
-            courtCard.querySelector('.summary').innerText = "查無相關判決網址";
-            courtCard.querySelector('.summary').style.display = 'block';
+        if (scoreVal) {
+            scoreVal.innerText = score;
+            scoreVal.className = `score-value ${cfg.color}`;
         }
-        courtCard.querySelector('.tag-row').innerHTML = ''; // 清空標籤
+        if (statusTag) {
+            statusTag.className = `status-tag text-${cfg.color}`;
+            statusTag.innerText = cfg.text;
+        }
+        if (courtCard) courtCard.className = `result-card court-data border-${cfg.color}`;
+        if (userCard) userCard.className = `result-card user-data border-${cfg.color}`;
 
-        // 2. 渲染民間卡片：給標籤不給文字並顯示幾筆回報
+        const courtTitle = courtCard ? courtCard.querySelector('h3') : null;
+        if (courtTitle) courtTitle.style.display = 'none';
+
+        const courtSummary = courtCard ? courtCard.querySelector('.summary') : null;
+        if (courtSummary) {
+            if (courtInfo && courtInfo.url) {
+                courtSummary.innerHTML = `<a href="${courtInfo.url}" target="_blank" rel="noopener noreferrer" style="color: #3498db; word-break: break-all;">${courtInfo.url}</a>`;
+            } else {
+                courtSummary.innerText = "查無相關判決網址";
+            }
+            courtSummary.style.display = 'block';
+        }
+        const courtTagRow = courtCard ? courtCard.querySelector('.tag-row') : null;
+        if (courtTagRow) courtTagRow.innerHTML = '';
+
         if (userInfo && userInfo.found) {
-            userCard.style.display = 'block';
+            if (userCard) userCard.style.display = 'block';
+            const userTitle = userCard.querySelector('h3');
+            if (userTitle) {
+                userTitle.innerText = `共 ${userInfo.reportCount || 0} 筆回報`;
+                userTitle.style.display = 'block';
+            }
+            const userSummary = userCard.querySelector('.summary');
+            if (userSummary) userSummary.style.display = 'none';
 
-            // 顯示筆數
-            const count = userInfo.reportCount || 0;
-            userCard.querySelector('h3').innerText = `共 ${count} 筆回報`;
-            userCard.querySelector('h3').style.display = 'block';
-
-            // 隱藏敘述文字
-            userCard.querySelector('.summary').style.display = 'none';
-
-            // 渲染標籤
             const tagRow = userCard.querySelector('.tag-row');
-            tagRow.innerHTML = '';
-            if (userInfo.tags && userInfo.tags.length > 0) {
-                userInfo.tags.forEach(tagText => {
-                    const span = document.createElement('span');
-                    span.className = `ui-tag user-tag`;
-                    span.innerText = tagText;
-                    tagRow.appendChild(span);
-                });
+            if (tagRow) {
+                tagRow.innerHTML = '';
+                if (userInfo.tags && userInfo.tags.length > 0) {
+                    userInfo.tags.forEach(tagText => {
+                        const span = document.createElement('span');
+                        span.className = `ui-tag user-tag`;
+                        span.innerText = tagText;
+                        tagRow.appendChild(span);
+                    });
+                }
             }
             if (legalFooter) legalFooter.style.display = 'block';
         } else {
-            userCard.style.display = 'none';
+            if (userCard) userCard.style.display = 'none';
             if (legalFooter) legalFooter.style.display = 'none';
         }
     }
 }
-/**
- * 輔助函式：將標籤陣列轉換為 UI 元件
- * @param {string} containerId - 容器元素 ID
- * @param {string[]} tags      - 標籤文字陣列
- * @param {string} cssClass    - 附加的 CSS class（如 'high-risk' 或 'user-tag'）
- */
+
 function renderResultTags(containerId, tags, cssClass) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -223,79 +354,114 @@ function setReportType(type) {
     currentReportType = type;
     selectedTags.clear();
 
-    document.getElementById('btn-report-tenant').classList.toggle('active', type === 'tenant');
-    document.getElementById('btn-report-landlord').classList.toggle('active', type === 'landlord');
+    const btnTenant = document.getElementById('btn-report-tenant');
+    const btnLandlord = document.getElementById('btn-report-landlord');
+    if (btnTenant) btnTenant.className = type === 'tenant' ? 'active' : '';
+    if (btnLandlord) btnLandlord.className = type === 'landlord' ? 'active' : '';
 
-    const nameLabel = type === 'tenant' ? '房客姓名' : '房東姓名';
-    const ageLabel = type === 'tenant' ? '房客目測年齡' : '房東目測年齡';
-    document.getElementById('lbl-name').innerHTML = `${nameLabel} <span class="required">*</span>`;
-    document.getElementById('lbl-age').innerHTML = `${ageLabel} <span class="required">*</span>`;
+    const lblName = document.getElementById('lbl-name');
+    const lblAge = document.getElementById('lbl-age');
+    if (lblName) lblName.innerHTML = type === 'tenant' ? '房客姓名 <span class="required">*</span>' : '房東/出租人姓名 <span class="required">*</span>';
+    if (lblAge) lblAge.innerHTML = type === 'tenant' ? '房客目測年齡 <span class="required">*</span>' : '房東目測年齡 <span class="required">*</span>';
+
+    // 動態切換專屬欄位區塊
+    const fieldsTenant = document.getElementById('fields-tenant');
+    const fieldsLandlord = document.getElementById('fields-landlord');
+    if (type === 'tenant') {
+        if (fieldsTenant) fieldsTenant.style.display = 'block';
+        if (fieldsLandlord) fieldsLandlord.style.display = 'none';
+    } else {
+        if (fieldsTenant) fieldsTenant.style.display = 'none';
+        if (fieldsLandlord) fieldsLandlord.style.display = 'block';
+    }
 
     renderTags();
 }
 
+// --- 渲染特徵標籤 (中立合併版) ---
 function renderTags() {
-    const goodContainer = document.getElementById('tag-container-good');
-    const badContainer = document.getElementById('tag-container-bad');
-    if (!goodContainer || !badContainer) return;
+    // 現在只需抓取單一容器
+    const container = document.getElementById('tag-container');
+    if (!container) return;
 
-    goodContainer.innerHTML = '';
-    badContainer.innerHTML = '';
+    container.innerHTML = ''; // 清空舊標籤
 
+    // 依據當前身分 (tenant 或 landlord) 載入標籤
     TAG_LIBRARY[currentReportType].forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
-        chip.dataset.impact = tag.impact;
+        // 不再區分好壞的視覺影響，統一當作特徵處理
         chip.innerText = tag.text;
 
+        // 點擊選取邏輯
         chip.onclick = () => {
-            if (selectedTags.has(tag.id)) {
-                selectedTags.delete(tag.id);
+            if (selectedTags.has(tag.text)) {
+                selectedTags.delete(tag.text);
                 chip.classList.remove('selected');
             } else {
-                selectedTags.add(tag.id);
+                selectedTags.add(tag.text);
                 chip.classList.add('selected');
             }
         };
 
-        if (tag.impact === 'good') {
-            goodContainer.appendChild(chip);
-        } else {
-            badContainer.appendChild(chip);
-        }
+        container.appendChild(chip);
     });
 }
 
 async function submitReport() {
+    // 🌟 擷取所有表單內容 (包含新增的防禦欄位)
+    const area = document.getElementById('report-area').value;
     const name = document.getElementById('report-name').value.trim();
     const age = document.getElementById('report-age').value;
     const phoneRaw = document.getElementById('report-phone').value;
+    const year = document.getElementById('report-year').value;
+    const isAgreed = document.getElementById('report-agreement').checked;
 
-    // 強制只留數字並限 4 碼
     const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(0, 4);
 
-    if (!name || !age) return alert("姓名與年齡為必填");
+    // 必填驗證
+    if (!isAgreed) return alert("請勾選同意法律免責切結書");
+    if (!area || !name || !age || !year) return alert("請完整填寫生活圈、姓名、年齡與發生年份");
     if (phoneClean.length !== 4) return alert("電話末四碼必須為 4 位數字");
     if (selectedTags.size === 0) return alert("請至少選擇一個特徵標籤");
+
+    // 🌟 擷取身分專屬欄位
+    let specificData = {};
+    if (currentReportType === 'tenant') {
+        const tTarget = document.getElementById('report-tenant-target');
+        const tRent = document.getElementById('report-tenant-rent');
+        if (!tTarget.value || !tRent.value) return alert("請選擇承租型態與租金級距");
+        specificData = { target: tTarget.value, rentLevel: tRent.value };
+    } else {
+        const lType = document.getElementById('report-landlord-type');
+        const lTarget = document.getElementById('report-landlord-target');
+        if (!lType.value || !lTarget.value) return alert("請選擇出租人屬性與出租型態");
+        specificData = { landlordType: lType.value, target: lTarget.value };
+    }
 
     switchView('view-loading');
 
     const hName = await hashData(name);
     const hPhone = await hashData(phoneClean);
 
+    // 🌟 升級版 Payload：加入 UID、平台與所有新欄位
     const payload = {
         action: "report",
+        uid: currentUser.uid,
+        platform: currentUser.platform,
         type: currentReportType,
+        area: area,
         hName,
         hPhone,
         ageRange: age,
+        year: year,
+        specificData: specificData,
         tags: Array.from(selectedTags),
         timestamp: new Date().toISOString()
     };
 
     console.log("🚀 [回報 Payload]:", payload);
 
-    // 模擬等待 (正式上線後改為 fetch 呼叫)
     setTimeout(() => {
         alert("✅ 回報已完成加密傳輸。個資已於手機端銷毀。");
         resetApp();
@@ -306,35 +472,47 @@ async function submitReport() {
 
 /** 開啟回報視圖 */
 function openReportView() {
+    // 🌟 修正：權限不對等防禦 (阻擋 Telegram 寫入)
+    if (currentUser.platform === 'TELEGRAM') {
+        alert("🔒 訪客權限限制：\n為確保資料庫真實性，Telegram 環境目前僅開放「查詢」功能。若需建立民間履約回報，請改用 LINE 官方帳號開啟本系統。");
+        return;
+    }
+
     switchView('view-report');
-    renderTags(); // 必須呼叫：標籤才會動態生成並顯示
+    renderTags();
 }
 
 /** 返回搜尋視圖，並重置所有輸入 */
 function resetApp() {
     switchView('view-search');
 
-    // 清空回報頁面的輸入內容，避免下次打開還有舊資料
     const reportName = document.getElementById('report-name');
     const reportPhone = document.getElementById('report-phone');
+    const reportArea = document.getElementById('report-area');
     const reportAge = document.getElementById('report-age');
+    const reportYear = document.getElementById('report-year');
+    const agreement = document.getElementById('report-agreement');
+
     if (reportName) reportName.value = '';
     if (reportPhone) reportPhone.value = '';
-    if (reportAge) reportAge.value = '';
+    if (reportArea) reportArea.selectedIndex = 0;
+    if (reportAge) reportAge.selectedIndex = 0;
+    if (reportYear) reportYear.selectedIndex = 0;
+    if (agreement) agreement.checked = false;
 
-    // 重置標籤選擇器
+    // 清空專屬欄位
+    const selects = document.querySelectorAll('.dynamic-fields select');
+    selects.forEach(s => s.selectedIndex = 0);
+
     selectedTags.clear();
-    renderTags(); // 確保選中的高亮樣式消失
+    renderTags();
 
-    // 隱藏申訴區塊
     const legalFooter = document.querySelector('.legal-footer');
     if (legalFooter) legalFooter.style.display = 'none';
 
-    // 捲動回頁面頂部（手機體驗優化）
     window.scrollTo(0, 0);
 }
 
-/** 申訴機制導向 */
 function openTakedownForm() {
     alert("已啟動資料查核程序。請將異議說明連同相關證明發送至申訴信箱，我們將於 72 小時內完成查核並暫時隱藏有爭議之資訊。");
 }
@@ -342,30 +520,26 @@ function openTakedownForm() {
 // --- 8. 即時數據儀表板更新 ---
 async function updateLiveStats() {
     try {
-        // 正式上線時，將此 URL 替換為你的 GAS Web App URL
-        // const GAS_URL = "你的_GAS_部署網址";
-        // const response = await fetch(`${GAS_URL}?action=getStats`);
-        // const data = await response.json();
-
-        // 暫時模擬從後端抓取的動態行為
         const simulatedData = {
             courtCount: 5012345,
             userCount: 1204
         };
-
-        document.getElementById('stat-court-num').innerText = simulatedData.courtCount.toLocaleString();
-        document.getElementById('stat-user-num').innerText = simulatedData.userCount.toLocaleString();
+        const stCourt = document.getElementById('stat-court-num');
+        const stUser = document.getElementById('stat-user-num');
+        if (stCourt) stCourt.innerText = simulatedData.courtCount.toLocaleString();
+        if (stUser) stUser.innerText = simulatedData.userCount.toLocaleString();
         console.log("📊 儀表板數據已同步更新");
     } catch (error) {
         console.error("無法更新儀表板數據:", error);
-        document.getElementById('stat-court-num').innerText = '—';
-        document.getElementById('stat-user-num').innerText = '—';
     }
 }
 
-// --- 9. 初始化（只定義一次） ---
-window.onload = () => {
-    switchView('view-search'); // 初始只顯示搜尋畫面
-    renderTags();              // 預渲染標籤
-    updateLiveStats();         // 更新儀表板
+// --- 9. 初始化 ---
+window.onload = async () => {
+    // 🌟 新增：系統啟動時先執行環境偵測
+    await initializeAuth();
+
+    switchView('view-search');
+    renderTags();
+    updateLiveStats();
 };

@@ -17,7 +17,6 @@
             <p>簡單、方便、去識別化的租賃徵信</p>
         </header>
 
-        <!-- 統計儀表板 -->
         <div class="stats-dashboard">
             <div class="stat-box official-stat">
                 <div class="stat-title">🏛️ 官方法院數據</div>
@@ -29,7 +28,6 @@
             </div>
         </div>
 
-        <!-- 搜尋畫面 -->
         <section id="view-search" class="view">
             <div class="card">
                 <div class="input-group">
@@ -70,17 +68,61 @@
                         oninput="if(this.value.length>4)this.value=this.value.slice(0,4); if(this.value<0)this.value=0;">
                 </div>
 
-                <button class="btn-primary" id="btn-search" onclick="handleSearch()">🔍 開始安全比對</button>
-
+                <button class="btn-primary" onclick="handleSearch()">🔍 開始安全比對</button>
+                <button class="btn-primary" onclick="handleSearch()">🔍 查詢履約紀錄</button>
                 <div class="divider"><span>或</span></div>
 
                 <button class="btn-outline" id="btn-open-report" onclick="openReportView()">✍️ 建立民間履約回報</button>
             </div>
         </section>
 
-        <!-- 回報畫面 -->
+        <section id="view-loading" class="view hidden">
+            <div class="loader-content">
+                <div class="spinner"></div>
+                <p id="loading-text">🔒 正在進行端對端安全編碼...</p>
+                <p id="loading-text">🔒 正在透過安全通道檢索資料庫...</p>
+            </div>
+        </section>
+
+        <section id="view-results" class="view hidden">
+            <div class="result-header">
+                <div class="score-container">
+                    <div class="score-label">⚖️ 風險指數</div>
+                    <div class="score-value green">—</div>
+                    <div class="status-tag text-green">比對中...</div>
+                </div>
+            </div>
+
+            <div class="result-card court-data border-green">
+                <div class="card-tag">🏛️ 官方法院數據</div>
+                <div class="summary">
+                    <a id="res-court-link" href="#" target="_blank" rel="noopener noreferrer"
+                        style="color: #3498db; word-break: break-all; display: none;"></a>
+                    <span id="res-court-empty">查無相關法院判決紀錄</span>
+                </div>
+                <div class="tag-row"></div>
+            </div>
+
+            <div class="result-card user-data border-green" style="display: none;">
+                <div class="card-tag">👤 民間履約回報 (Shadow_Lab)</div>
+                <div class="card-tag">👤 平台建檔紀錄</div>
+                <h3 id="res-user-title" style="margin: 5px 0 10px; font-size: 14px;">共 0 筆回報</h3>
+                <div id="res-user-tags" class="tag-row"></div>
+            </div>
+
+            <div class="legal-footer" style="display: none;">
+                <div class="takedown-box">
+                    <p>對以上資訊有異議？</p>
+                    <button class="btn-small-outline" onclick="openTakedownForm()">📋 申請資料查核</button>
+                </div>
+                <p class="disclaimer">⚠️ 本平台資料均來自公開司法院判決資料庫及自願性民間回報，所有個人資料均已去識別化處理。本平台僅提供公開資訊彙整服務，不對查詢結果之正確性或完整性負責。</p>
+            </div>
+
+            <button class="btn-primary" onclick="resetApp()">🔙 返回重新搜尋</button>
+        </section>
+
         <section id="view-report" class="view hidden">
-            <div class="card">
+            <div class="card user-data">
                 <div class="card-tag">👤 建立民間履約回報</div>
 
                 <div class="identity-switch">
@@ -89,12 +131,27 @@
                 </div>
 
                 <div class="input-group">
-                    <label id="lbl-name" for="report-name">房客姓名 <span class="required">*</span></label>
+                    <label>對象生活圈 <span class="required">*</span></label>
+                    <select id="report-area" required>
+                        <option value="" disabled selected>請選擇對象生活圈</option>
+                        <option value="AREA_PCDV">新北核心 (板橋/中永和/土城/三重/蘆洲)</option>
+                        <option value="AREA_TPDV">台北核心 (中正/大安/萬華/文山/新店)</option>
+                        <option value="AREA_SLDV">台北北區 (士林/北投/內湖/南港)</option>
+                        <option value="AREA_TYDV">桃園/中壢生活圈</option>
+                        <option value="AREA_JCDV">新竹/竹北生活圈</option>
+                        <option value="AREA_TCDV">台中核心生活圈</option>
+                        <option value="AREA_TNDV">台南核心生活圈</option>
+                        <option value="AREA_KSDV">高雄核心生活圈</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label id="lbl-name">對象姓名 <span class="required">*</span></label>
                     <input type="text" id="report-name" placeholder="請輸入真實姓名" required>
                 </div>
 
                 <div class="input-group">
-                    <label id="lbl-age" for="report-age">房客目測年齡 <span class="required">*</span></label>
+                    <label id="lbl-age">對象目測年齡 <span class="required">*</span></label>
                     <select id="report-age" required>
                         <option value="" disabled selected>請選擇年齡區間</option>
                         <option value="AGE_20">20 - 30 歲</option>
@@ -105,74 +162,84 @@
                 </div>
 
                 <div class="input-group">
-                    <label id="lbl-phone" for="report-phone">電話末四碼 <span class="required">*</span></label>
+                    <label id="lbl-phone">電話末四碼 <span class="required">*</span></label>
                     <input type="number" id="report-phone" inputmode="numeric" pattern="[0-9]*" min="0"
                         placeholder="例如: 5678"
                         oninput="if(this.value.length>4)this.value=this.value.slice(0,4); if(this.value<0)this.value=0;"
                         required>
                 </div>
 
+                <div id="fields-tenant" class="dynamic-fields">
+                    <div class="input-group">
+                        <label>承租標的型態 <span class="required">*</span></label>
+                        <select id="report-tenant-target">
+                            <option value="" disabled selected>請選擇承租型態</option>
+                            <option value="住宅">一般住宅 (套雅房/整層)</option>
+                            <option value="店面">營業用店面</option>
+                            <option value="商辦">辦公室/廠房</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>每月租金級距 <span class="required">*</span></label>
+                        <select id="report-tenant-rent">
+                            <option value="" disabled selected>請選擇租金級距</option>
+                            <option value="1W內">1 萬元以內</option>
+                            <option value="1W-3W">1萬 ~ 3萬元</option>
+                            <option value="3W以上">3 萬元以上</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="fields-landlord" class="dynamic-fields" style="display: none;">
+                    <div class="input-group">
+                        <label>出租人屬性 <span class="required">*</span></label>
+                        <select id="report-landlord-type">
+                            <option value="" disabled selected>請選擇出租人屬性</option>
+                            <option value="屋主">屋主本人</option>
+                            <option value="二房東">二房東 (轉租)</option>
+                            <option value="代管">包租代管業者</option>
+                            <option value="仲介">一般仲介代理</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>主要出租型態 <span class="required">*</span></label>
+                        <select id="report-landlord-target">
+                            <option value="" disabled selected>請選擇出租型態</option>
+                            <option value="獨立套房">獨立套房</option>
+                            <option value="分租套雅房">分租套房/雅房</option>
+                            <option value="整層住家">整層住家</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="input-group">
-                    <label>特徵註解 (可複選)</label>
-
-                    <div class="tag-group-label text-green">✨ 優點 / 正向特徵</div>
-                    <div id="tag-container-good" class="tag-selector-grid"></div>
-
-                    <div class="tag-group-label text-red" style="margin-top: 15px;">⚠️ 缺點 / 風險特徵</div>
-                    <div id="tag-container-bad" class="tag-selector-grid"></div>
+                    <label>事件發生年份 <span class="required">*</span></label>
+                    <select id="report-year" required>
+                        <option value="" disabled selected>請選擇發生年份</option>
+                        <option value="113">113年 (近期)</option>
+                        <option value="110-112">110-112年</option>
+                        <option value="109以前">109年以前</option>
+                    </select>
                 </div>
 
-                <button class="btn-submit-yellow" id="btn-submit-report" onclick="submitReport()">🔒 加密並送出回報</button>
-                <button class="btn-primary" id="btn-back-from-report" onclick="resetApp()">返回重新搜尋</button>
-            </div>
-        </section>
-
-        <!-- 載入畫面 -->
-        <section id="view-loading" class="view hidden">
-            <div class="loader-content">
-                <div class="spinner"></div>
-                <p id="loading-text">🔒 正在進行端對端安全編碼...</p>
-            </div>
-        </section>
-
-        <!-- 結果畫面 -->
-        <section id="view-results" class="view hidden">
-            <div class="result-header">
-                <div class="score-container">
-                    <span class="score-label">風險評分</span>
-                    <div class="score-value">--</div>
-                </div>
-                <div class="status-tag">分析中...</div>
-            </div>
-
-            <div class="result-card court-data">
-                <div class="card-tag">🏛️ 法院判決紀錄</div>
-                <a id="res-court-link" href="#" target="_blank"
-                    style="display:none; color: #3498db; word-break: break-all; font-size: 14px; margin-top: 10px;"></a>
-                <p id="res-court-empty" style="margin-top:10px; color: #7f8c8d; font-size: 14px;">查無相關判決網址</p>
-            </div>
-
-            <div class="result-card user-data">
-                <div class="card-tag">👤 民間履約回報 (Shadow_Lab)</div>
-                <h3 id="res-user-title" style="margin-bottom: 10px;">共 0 筆回報</h3>
-                <div class="tag-row" id="res-user-tags">
-                </div>
-            </div>
-
-            <button class="btn-primary" id="btn-reset" onclick="resetApp()">重新查詢</button>
-
-            <div class="legal-footer">
-                <div class="takedown-box">
-                    <p>對此結果有異議？</p>
-                    <button class="btn-small-outline" id="btn-takedown" onclick="openTakedownForm()">🚩
-                        提出資料查核申請</button>
+                <div class="input-group">
+                    <label>履約行為特徵 (可複選)</label>
+                    <div id="tag-container" class="tag-selector-grid">
+                    </div>
                 </div>
 
-                <div class="disclaimer">
-                    <strong>免責聲明：</strong>
-                    本系統資料來源包含「公開司法判決紀錄」及「匿名使用者自發回報」。資訊內容僅供決策參考，不代表本平台對特定人之人格評價。查詢結果受限於資料更新頻率及姓名雜湊碰撞機率，無法完全保證與當前事實 100%
-                    吻合。使用者應自行評估風險，本平台不負最終履約擔保責任。
+                <div class="input-group checkbox-group"
+                    style="margin-top: 15px; padding: 10px; background-color: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
+                    <label
+                        style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 13px; color: #555; line-height: 1.5; font-weight: normal;">
+                        <input type="checkbox" id="report-agreement" required
+                            style="margin-top: 3px; transform: scale(1.2);">
+                        <span><strong>法律免責切結：</strong>本人切結以上回報皆屬客觀事實，且本人握有相關租約、對話或毀損照片等客觀證據。若遇司法調查，本人願自負相關法律責任，與本平台無涉。</span>
+                    </label>
                 </div>
+
+                <button class="btn-submit-yellow" onclick="submitReport()">🔒 加密並送出回報</button>
+                <button class="btn-primary" onclick="resetApp()">返回重新搜尋</button>
             </div>
         </section>
 
