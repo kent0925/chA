@@ -112,14 +112,17 @@ async function handleSearch() {
 
     // 🌟 正式用戶 (LINE/TG) 查詢邏輯
     const name = document.getElementById('in-name').value.trim();
-    const area = document.getElementById('in-area').value;
-    const ageRange = document.getElementById('in-age').value;
+
+    // 💡 CIO 提醒：搜尋功能不分區，因此將 area 相關變數與阻擋邏輯移除
+    // 若你有新增年齡欄位 (in-age) 作為輔助，可保留讀取
+    const ageRange = document.getElementById('in-age') ? document.getElementById('in-age').value : "";
 
     const phoneRaw = document.getElementById('in-phone').value;
-    const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(0, 4);
+    // 🛡️ 修正：使用 slice(-4) 精準擷取「末四碼」
+    const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(-4);
 
-    if (!name || !area) return alert("姓名與地區為必填");
-    if (phoneRaw && phoneClean.length !== 4) return alert("電話末四碼必須為 4 位數字");
+    if (!name) return alert("查詢對象之姓名為必填");
+    if (phoneRaw && phoneClean.length !== 4) return alert("電話末四碼輸入格式錯誤，必須為 4 位數字");
 
     switchView('view-loading');
     const hName = await hashData(name);
@@ -132,8 +135,7 @@ async function handleSearch() {
         limit: currentUser.quota,
         hName,
         hPhone,
-        area,
-        ageRange
+        ageRange // area 欄位已從搜尋頁移除，不再傳送
     };
 
     console.log("🚀 [搜尋 Payload]:", payload);
@@ -172,7 +174,8 @@ function updateResultsUI(input) {
             const courtEmpty = document.getElementById('res-court-empty');
             if (courtLink) {
                 courtLink.href = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
-                courtLink.innerText = 'https://judgment.judicial.gov.tw/FJUD/ (示意網址)';
+                courtLink.innerText = '108年度重建簡字第39號'; // 示意字號
+                courtLink.style.wordBreak = 'normal'; // 取消網址強制換行，讓字號完整顯示
                 courtLink.style.display = 'block';
                 courtLink.setAttribute('rel', 'noopener noreferrer');
             }
@@ -225,9 +228,12 @@ function updateResultsUI(input) {
         const courtSummary = courtCard ? courtCard.querySelector('.summary') : null;
         if (courtSummary) {
             if (courtInfo && courtInfo.url) {
-                courtSummary.innerHTML = `<a href="${courtInfo.url}" target="_blank" rel="noopener noreferrer" style="color: #3498db; word-break: break-all;">${courtInfo.url}</a>`;
+                // 呼叫我們剛剛寫的輔助函式，把後端傳來的 sourceJID 轉成漂亮字號
+                const displayText = courtInfo.sourceJID ? formatJID(courtInfo.sourceJID) : '查看法院公開判決';
+
+                courtSummary.innerHTML = `<a href="${courtInfo.url}" target="_blank" rel="noopener noreferrer" style="color: #3498db; font-weight: bold; text-decoration: none;">${displayText}</a>`;
             } else {
-                courtSummary.innerText = "查無相關判決網址";
+                courtSummary.innerText = "查無相關公開判決";
             }
             courtSummary.style.display = 'block';
         }
@@ -316,6 +322,7 @@ function renderTags() {
     TAG_LIBRARY[currentReportType].forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
+        chip.dataset.impact = tag.impact; // 保留 data-impact 供 CSS hover 效果使用
         chip.innerText = tag.text;
 
         chip.onclick = () => {
@@ -340,11 +347,12 @@ async function submitReport() {
     const year = document.getElementById('report-year').value;
     const isAgreed = document.getElementById('report-agreement').checked;
 
-    const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(0, 4);
+    const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(-4);
 
     if (!isAgreed) return alert("請勾選同意法律免責切結書");
     if (!area || !name || !age || !year) return alert("請完整填寫生活圈、姓名、年齡與發生年份");
-    if (phoneClean.length !== 4) return alert("電話末四碼必須為 4 位數字");
+    // 電話為必填，且輸入後必須恰好 4 位純數字
+    if (!phoneRaw || phoneClean.length !== 4) return alert("電話末四碼必須為 4 位數字");
     if (selectedTags.size === 0) return alert("請至少選擇一個特徵標籤");
 
     let specificData = {};
@@ -409,6 +417,15 @@ function openReportView() {
 function resetApp() {
     switchView('view-search');
 
+    // 清空搜尋頁表單
+    const inName = document.getElementById('in-name');
+    const inAge = document.getElementById('in-age');
+    const inPhone = document.getElementById('in-phone');
+    if (inName) inName.value = '';
+    if (inAge) inAge.selectedIndex = 0;
+    if (inPhone) inPhone.value = '';
+
+    // 清空回報頁表單
     const reportName = document.getElementById('report-name');
     const reportPhone = document.getElementById('report-phone');
     const reportArea = document.getElementById('report-area');
@@ -480,6 +497,19 @@ function generateYearOptions() {
 
     // 動態新增選項 3：更早以前 (例如：111年以前)
     yearSelect.add(new Option(`${twYear - 4}年以前`, `${twYear - 4}以前`));
+}
+
+// --- 輔助函式：將 Source_JID 轉換為標準裁判字號 ---
+function formatJID(sourceJID) {
+    if (!sourceJID) return "查看法院公開判決"; // 若無資料的備用文字
+
+    const parts = sourceJID.split(',');
+    // 確認字串有用逗號隔開，且長度足夠 (SJEV, 108, 重建簡, 39...)
+    if (parts.length >= 4) {
+        // 取出對應的欄位並組合
+        return `${parts[1]}年度${parts[2]}字第${parts[3]}號`;
+    }
+    return sourceJID; // 若格式不符，直接印出原值
 }
 
 // --- 9. 初始化 ---

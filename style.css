@@ -2,15 +2,15 @@
    全域設計令牌
    ============================================================ */
 :root {
-    --primary:      #005088;
-    --secondary:    #f1c40f;
-    --text:         #2c3e50;
-    --bg:           #f8f9fa;
-    --danger:       #e74c3c;
-    --level-green:  #27ae60;
+    --primary: #005088;
+    --secondary: #f1c40f;
+    --text: #2c3e50;
+    --bg: #f8f9fa;
+    --danger: #e74c3c;
+    --level-green: #27ae60;
     --level-yellow: #f39c12;
     --level-orange: #e67e22;
-    --level-red:    #e74c3c;
+    --level-red: #e74c3c;
 }
 
 /* ============================================================
@@ -132,7 +132,8 @@ select {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    font-size: 16px !important;   /* 防止 iOS 自動縮放 */
+    font-size: 16px !important;
+    /* 防止 iOS 自動縮放 */
     background-color: white;
 
     /* 移除 iOS/Chrome 原生樣式 */
@@ -142,7 +143,8 @@ select {
 
 /* 自訂下拉箭頭（只套用於 select，input 不需要） */
 select {
-    padding-right: 30px; /* 為箭頭圖示留右側空間 */
+    padding-right: 30px;
+    /* 為箭頭圖示留右側空間 */
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ccc%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
@@ -248,8 +250,13 @@ button {
 }
 
 @keyframes spin {
-    0%   { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* ============================================================
@@ -316,15 +323,41 @@ button {
 }
 
 /* 風險等級色彩工具類（.text-* 與裸名類共用）*/
-.text-green,  .green  { color: var(--level-green)  !important; }
-.text-yellow, .yellow { color: var(--level-yellow) !important; }
-.text-orange, .orange { color: var(--level-orange) !important; }
-.text-red,    .red    { color: var(--level-red)    !important; }
+.text-green,
+.green {
+    color: var(--level-green) !important;
+}
 
-.border-green  { border-left-color: var(--level-green)  !important; }
-.border-yellow { border-left-color: var(--level-yellow) !important; }
-.border-orange { border-left-color: var(--level-orange) !important; }
-.border-red    { border-left-color: var(--level-red)    !important; }
+.text-yellow,
+.yellow {
+    color: var(--level-yellow) !important;
+}
+
+.text-orange,
+.orange {
+    color: var(--level-orange) !important;
+}
+
+.text-red,
+.red {
+    color: var(--level-red) !important;
+}
+
+.border-green {
+    border-left-color: var(--level-green) !important;
+}
+
+.border-yellow {
+    border-left-color: var(--level-yellow) !important;
+}
+
+.border-orange {
+    border-left-color: var(--level-orange) !important;
+}
+
+.border-red {
+    border-left-color: var(--level-red) !important;
+}
 
 /* ============================================================
    UI 標籤（查詢結果用）
@@ -425,8 +458,13 @@ button {
 }
 
 /* 覆寫 .tag-group-label 配合 .text-green / .text-red 的 border-color */
-.tag-group-label.text-green { border-color: var(--level-green); }
-.tag-group-label.text-red   { border-color: var(--level-red);   }
+.tag-group-label.text-green {
+    border-color: var(--level-green);
+}
+
+.tag-group-label.text-red {
+    border-color: var(--level-red);
+}
 
 /* 標籤膠囊 */
 .tag-chip {
@@ -447,15 +485,24 @@ button {
 }
 
 /* Hover 微互動 */
-.tag-chip[data-impact="good"]:hover { border-color: var(--level-green); }
-.tag-chip[data-impact="bad"]:hover  { border-color: var(--danger); }
+.tag-chip[data-impact="good"]:hover {
+    border-color: var(--level-green);
+}
 
-/* 選中狀態 */
+.tag-chip[data-impact="bad"]:hover {
+    border-color: var(--danger);
+}
+
+/* 選中狀態（通用 fallback，不論 data-impact）*/
 .tag-chip.selected {
     font-weight: bold;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    background: #eef4ff;
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
+/* 依 data-impact 覆蓋顏色（好評 / 負評）*/
 .tag-chip[data-impact="good"].selected {
     background: #eafaf1;
     border-color: var(--level-green);

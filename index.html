@@ -36,23 +36,6 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="in-area">生活圈 <span class="required">*</span></label>
-                    <select id="in-area" required>
-                        <option value="" disabled selected>請選擇對象生活圈</option>
-                        <option value="AREA_PCDV">新北核心 (板橋/中永和/土城/三重/蘆洲)</option>
-                        <option value="AREA_TPDV">台北核心 (中正/大安/萬華/文山/新店)</option>
-                        <option value="AREA_SLDV">台北北區 (士林/北投/內湖/南港)</option>
-                        <option value="AREA_TYDV">桃園/中壢生活圈</option>
-                        <option value="AREA_JCDV">新竹/竹北生活圈</option>
-                        <option value="AREA_TCDV">台中核心生活圈</option>
-                        <option value="AREA_TNDV">台南核心生活圈</option>
-                        <option value="AREA_KSDV">高雄核心生活圈</option>
-                        <option value="AREA_EADV">宜花東生活圈 (宜蘭/花蓮/台東)</option>
-                        <option value="AREA_ISDV">外島/離島生活圈 (澎湖/金門/馬祖)</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
                     <label for="in-age">目測年齡</label>
                     <select id="in-age">
                         <option value="ALL">不限年齡</option>
@@ -80,7 +63,6 @@
         <section id="view-loading" class="view hidden">
             <div class="loader-content">
                 <div class="spinner"></div>
-                <p id="loading-text">🔒 正在進行端對端安全編碼...</p>
                 <p id="loading-text">🔒 正在透過安全通道檢索資料庫...</p>
             </div>
         </section>
@@ -105,18 +87,24 @@
             </div>
 
             <div class="result-card user-data border-green" style="display: none;">
-                <div class="card-tag">👤 民間履約回報 (Shadow_Lab)</div>
                 <div class="card-tag">👤 平台建檔紀錄</div>
                 <h3 id="res-user-title" style="margin: 5px 0 10px; font-size: 14px;">共 0 筆回報</h3>
                 <div id="res-user-tags" class="tag-row"></div>
             </div>
 
             <div class="legal-footer" style="display: none;">
-                <div class="takedown-box">
-                    <p>對以上資訊有異議？</p>
+                <div class="takedown-box" style="margin-bottom: 15px; text-align: center;">
+                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 8px;">對以上資訊有異議？</p>
                     <button class="btn-small-outline" onclick="openTakedownForm()">📋 申請資料查核</button>
                 </div>
-                <p class="disclaimer">⚠️ 本平台資料均來自公開司法院判決資料庫及自願性民間回報，所有個人資料均已去識別化處理。本平台僅提供公開資訊彙整服務，不對查詢結果之正確性或完整性負責。</p>
+
+                <div class="disclaimer"
+                    style="padding: 12px; background: rgba(255,255,255,0.05); border-left: 3px solid #666; font-size: 0.85rem; color: #888; text-align: left; line-height: 1.5;">
+                    ⚠️ <b>系統免責與風險聲明：</b><br>
+                    1. 本系統採用單向去識別化雜湊（Hash）技術比對，不留存明文個資。<br>
+                    2. <b>資料庫檢索可能因當事人「同名同姓」或「合法改名」而產生關聯誤差。</b><br>
+                    3. 本光譜比對結果僅客觀呈現系統關聯度，不擔保資料之絕對正確性，亦不構成任何主觀評價或法律處分之唯一依據。查詢者應自行查證風險。
+                </div>
             </div>
 
             <button class="btn-primary" onclick="resetApp()">🔙 返回重新搜尋</button>
