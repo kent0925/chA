@@ -312,32 +312,39 @@ function setReportType(type) {
     renderTags();
 }
 
-// --- 渲染特徵標籤 (中立合併版) ---
+// --- 渲染特徵標籤 (分區版：優良 / 風險) ---
 function renderTags() {
-    const container = document.getElementById('tag-container');
-    if (!container) return;
+    const containerPositive = document.getElementById('report-tags-positive');
+    const containerNegative = document.getElementById('report-tags-negative');
+    if (!containerPositive || !containerNegative) return;
 
-    container.innerHTML = '';
+    containerPositive.innerHTML = '';
+    containerNegative.innerHTML = '';
 
     TAG_LIBRARY[currentReportType].forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
-        chip.dataset.impact = tag.impact; // 保留 data-impact 供 CSS hover 效果使用
+        chip.dataset.impact = tag.impact;
         chip.innerText = tag.text;
 
         chip.onclick = () => {
-            if (selectedTags.has(tag.text)) {
-                selectedTags.delete(tag.text);
+            if (selectedTags.has(tag.id)) {
+                selectedTags.delete(tag.id);
                 chip.classList.remove('selected');
             } else {
-                selectedTags.add(tag.text);
+                selectedTags.add(tag.id);
                 chip.classList.add('selected');
             }
         };
 
-        container.appendChild(chip);
+        if (tag.impact === 'good') {
+            containerPositive.appendChild(chip);
+        } else {
+            containerNegative.appendChild(chip);
+        }
     });
 }
+
 
 async function submitReport() {
     const area = document.getElementById('report-area').value;
@@ -412,6 +419,13 @@ function openReportView() {
     switchView('view-report');
     renderTags();
 }
+
+/** 🔧 開發測試用：強制進入建檔（不受平台限制）*/
+function forceOpenReport() {
+    switchView('view-report');
+    renderTags();
+}
+
 
 /** 返回搜尋視圖，並重置所有輸入 */
 function resetApp() {
@@ -532,4 +546,84 @@ function openDisclaimer() {
 function closeDisclaimer() {
     const modal = document.getElementById('disclaimer-modal');
     if (modal) modal.style.display = 'none';
+}
+
+// ==========================================
+// 🎨 渲染查詢結果：光譜 UI 動態生成
+// ==========================================
+function renderUserResults(matchCount, tagsArray) {
+    const card = document.querySelector('.result-card.user-data');
+    const title = document.getElementById('res-user-title');
+    const tagsContainer = document.getElementById('res-user-tags');
+
+    // 如果查無紀錄，繼續隱藏卡片並中斷執行
+    if (!matchCount || matchCount === 0) {
+        card.style.display = 'none';
+        return;
+    }
+
+    // 1. 顯示卡片並更新標題數量
+    card.style.display = 'block';
+    title.innerText = `共 ${matchCount} 筆關聯紀錄`;
+
+    // 清空舊的標籤
+    tagsContainer.innerHTML = '';
+
+    // 2. 將雙向字典攤平，方便快速搜尋比對
+    const allDictTags = [...TAG_LIBRARY.tenant, ...TAG_LIBRARY.landlord];
+
+    let hasGood = false;
+    let hasBad = false;
+
+    // 3. 迴圈生成標籤，並自動上色
+    tagsArray.forEach(tagText => {
+        // 去字典裡找這個標籤的屬性
+        const foundTag = allDictTags.find(t => t.text === tagText);
+        const impact = foundTag ? foundTag.impact : 'neutral';
+
+        // 建立標籤 DOM
+        const span = document.createElement('span');
+        span.innerText = tagText;
+        // 基本樣式設定
+        span.style.display = 'inline-block';
+        span.style.padding = '4px 8px';
+        span.style.margin = '3px';
+        span.style.borderRadius = '4px';
+        span.style.fontSize = '0.85rem';
+        span.style.fontWeight = 'bold';
+
+        // 依照 impact 屬性套用對應光譜顏色
+        if (impact === 'good') {
+            span.style.backgroundColor = 'rgba(46, 204, 113, 0.15)'; // 淺綠底
+            span.style.color = '#2ecc71'; // 綠字
+            span.style.border = '1px solid #2ecc71';
+            hasGood = true;
+        } else if (impact === 'bad') {
+            span.style.backgroundColor = 'rgba(231, 76, 60, 0.15)'; // 淺紅底
+            span.style.color = '#e74c3c'; // 紅字
+            span.style.border = '1px solid #e74c3c';
+            hasBad = true;
+        } else {
+            span.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            span.style.color = '#ccc';
+            span.style.border = '1px solid #666';
+        }
+
+        tagsContainer.appendChild(span);
+    });
+
+    // 4. 動態調整外框顏色 (光譜總結)
+    // 先移除所有可能的邊框 class
+    card.classList.remove('border-green', 'border-red', 'border-warning');
+
+    if (hasBad && !hasGood) {
+        card.classList.add('border-red'); // 全負面：紅框
+        card.style.borderLeft = "4px solid #e74c3c";
+    } else if (hasGood && !hasBad) {
+        card.classList.add('border-green'); // 全正面：綠框
+        card.style.borderLeft = "4px solid #2ecc71";
+    } else {
+        card.classList.add('border-warning'); // 好壞參半：橘框 (需在 CSS 補上邊框色)
+        card.style.borderLeft = "4px solid #f39c12";
+    }
 }

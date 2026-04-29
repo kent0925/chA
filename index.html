@@ -86,10 +86,26 @@
                 <div class="tag-row"></div>
             </div>
 
-            <div class="result-card user-data border-green" style="display: none;">
+            <div class="result-card user-data border-green" style="display: none;" id="res-user-card">
                 <div class="card-tag">👤 平台建檔紀錄</div>
                 <h3 id="res-user-title" style="margin: 5px 0 10px; font-size: 14px;">共 0 筆回報</h3>
-                <div id="res-user-tags" class="tag-row"></div>
+
+                <!-- 優良履約特徵統計 -->
+                <div id="res-user-good-section" style="margin-bottom: 10px; padding: 8px 10px; background: rgba(46,204,113,0.08); border-left: 3px solid #2ecc71; border-radius: 4px; display: none;">
+                    <span style="font-size: 0.8rem; color: #2ecc71; font-weight: bold; display: block; margin-bottom: 6px;">🌟 優良履約特徵</span>
+                    <div id="res-user-good-tags" class="tag-row"></div>
+                    <div id="res-user-good-count" style="font-size: 0.75rem; color: #888; margin-top: 4px;"></div>
+                </div>
+
+                <!-- 風險客觀事實統計 -->
+                <div id="res-user-bad-section" style="padding: 8px 10px; background: rgba(231,76,60,0.08); border-left: 3px solid #e74c3c; border-radius: 4px; display: none;">
+                    <span style="font-size: 0.8rem; color: #e74c3c; font-weight: bold; display: block; margin-bottom: 6px;">⚠️ 風險客觀事實</span>
+                    <div id="res-user-bad-tags" class="tag-row"></div>
+                    <div id="res-user-bad-count" style="font-size: 0.75rem; color: #888; margin-top: 4px;"></div>
+                </div>
+
+                <!-- fallback: 無分類時顯示 -->
+                <div id="res-user-tags" class="tag-row" style="display: none;"></div>
             </div>
 
             <div class="legal-footer" style="display: none;">
@@ -233,13 +249,11 @@
                     </div>
                 </div>
 
-                <div class="input-group checkbox-group"
-                    style="margin-top: 15px; padding: 10px; background-color: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
-                    <label
-                        style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 13px; color: #555; line-height: 1.5; font-weight: normal;">
-                        <input type="checkbox" id="report-agreement" required
-                            style="margin-top: 3px; transform: scale(1.2);">
-                        <span>
+                <div class="input-group checkbox-agree-group"
+                    style="margin-top: 15px;">
+                    <label class="agree-label" for="report-agreement">
+                        <input type="checkbox" id="report-agreement" required class="agree-checkbox">
+                        <span class="agree-text">
                             我已詳閱並同意 <a href="javascript:void(0)" onclick="openDisclaimer()"
                                 style="color: #3498db; text-decoration: underline; font-weight: bold;">《隱私權與免責切結聲明》</a>。<br>
                             <strong>法律免責切結：</strong>本人切結以上回報皆屬客觀事實，且本人握有相關租約、對話或毀損照片等客觀證據。若遇司法調查，本人願自負相關法律責任，與本平台無涉。
@@ -296,7 +310,7 @@
     </div>
 
     <button
-        onclick="document.getElementById('view-search').classList.add('hidden'); document.getElementById('view-report').classList.remove('hidden');"
+        onclick="forceOpenReport()"
         style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: #e74c3c; color: white; border: 2px solid white; padding: 12px 20px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;">
         🔧 開發測試：強制進入建檔
     </button>
