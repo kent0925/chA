@@ -520,3 +520,16 @@ window.onload = async () => {
     renderTags();
     updateLiveStats();
 };
+
+// ==========================================
+// ⚖️ 彈出視窗控制區塊 (隱私權與免責聲明)
+// ==========================================
+function openDisclaimer() {
+    const modal = document.getElementById('disclaimer-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeDisclaimer() {
+    const modal = document.getElementById('disclaimer-modal');
+    if (modal) modal.style.display = 'none';
+}
