@@ -19,7 +19,6 @@ async function hashData(text) {
 }
 
 // 🌟 新增：雙軌環境偵測與登入模組 (LINE / Telegram)
-// 🌟 1. 替換：雙軌環境偵測與登入模組 (加入 WEB 封鎖邏輯)
 async function initializeAuth() {
     try {
         // 偵測 A：Telegram (每日 1 次)
@@ -48,94 +47,6 @@ async function initializeAuth() {
     } catch (error) {
         currentUser = { uid: 'TRIAL_USER', platform: 'WEB', quota: 0 };
     }
-}
-
-// 🌟 2. 替換：搜尋邏輯 (加入 WEB 訪客阻擋)
-async function handleSearch() {
-    // 🌟 訪客試用版邏輯
-    if (currentUser.platform === 'WEB') {
-        switchView('view-loading');
-        setTimeout(() => {
-            // 試用版固定給予「極高風險」的 Demo，讓訪客知道系統的威力
-            updateResultsUI(99);
-            switchView('view-results');
-            // 在結果頁額外提示
-            alert("✨ 這是「試用版預覽」。\n若要查詢真實資料庫，請點擊下方按鈕加入 LINE 或 Telegram 官方帳號。");
-        }, 1500);
-        return;
-    }
-
-    // 🌟 正式用戶 (LINE/TG) 查詢邏輯
-    const name = document.getElementById('in-name').value.trim();
-    const area = document.getElementById('in-area').value;
-    if (!name || !area) return alert("姓名與地區為必填");
-
-    switchView('view-loading');
-    const hName = await hashData(name);
-    const phoneRaw = document.getElementById('in-phone').value;
-    const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(0, 4);
-    const hPhone = phoneClean ? await hashData(phoneClean) : "";
-
-    const payload = {
-        action: "search",
-        uid: currentUser.uid,
-        platform: currentUser.platform,
-        limit: currentUser.quota, // 告訴後端這次查詢應適用的額度
-        hName, hPhone, area
-    };
-
-    console.log("🚀 [正式查詢]", payload);
-
-    // 未來由 GAS 執行：if (todayUsage >= limit) return "額度已滿"
-    // 正式介接 fetch(GAS_URL, {method:'POST', body: JSON.stringify(payload)}) ...
-}
-const name = document.getElementById('in-name').value.trim();
-const area = document.getElementById('in-area').value;
-const ageRange = document.getElementById('in-age').value;
-
-const phoneRaw = document.getElementById('in-phone').value;
-const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(0, 4);
-
-if (!name || !area) return alert("姓名與地區為必填");
-if (phoneRaw && phoneClean.length !== 4) return alert("電話末四碼必須為 4 位數字");
-
-switchView('view-loading');
-const hName = await hashData(name);
-const hPhone = phoneClean ? await hashData(phoneClean) : "";
-
-const payload = {
-    action: "search",
-    uid: currentUser.uid,
-    platform: currentUser.platform,
-    hName,
-    hPhone,
-    area,
-    ageRange
-};
-console.log("🚀 [搜尋 Payload]:", payload);
-
-setTimeout(() => {
-    updateResultsUI(95);
-    switchView('view-results');
-}, 1500);
-
-
-// 🌟 3. 替換：開啟回報視圖 (加入 WEB 訪客阻擋)
-function openReportView() {
-    // 🛑 安全鎖：阻擋一般網頁匿名訪客
-    if (currentUser.platform === 'WEB' || currentUser.uid === 'BLOCKED') {
-        alert("🔒 安全驗證要求：\n請使用 LINE 官方帳號開啟本系統，以解鎖建立民間履約回報之權限。");
-        return;
-    }
-
-    // 🛑 權限不對等防禦：阻擋 Telegram 寫入
-    if (currentUser.platform === 'TELEGRAM') {
-        alert("🔒 訪客權限限制：\n為確保資料庫真實性，Telegram 環境目前僅開放「查詢」功能。若需建立民間履約回報，請改用 LINE 官方帳號開啟本系統。");
-        return;
-    }
-
-    switchView('view-report');
-    renderTags();
 }
 
 // --- 2. 視圖切換管理 ---
@@ -184,8 +95,22 @@ const TAG_LIBRARY = {
 let currentReportType = 'tenant';
 let selectedTags = new Set();
 
-// --- 4. 搜尋邏輯 ---
+// --- 4. 搜尋邏輯 (已修復整合版) ---
 async function handleSearch() {
+    // 🌟 訪客試用版邏輯
+    if (currentUser.platform === 'WEB') {
+        switchView('view-loading');
+        setTimeout(() => {
+            // 試用版固定給予「極高風險」的 Demo，讓訪客知道系統的威力
+            updateResultsUI(99);
+            switchView('view-results');
+            // 在結果頁額外提示
+            alert("✨ 這是「試用版預覽」。\n若要查詢真實資料庫，請點擊下方按鈕加入 LINE 或 Telegram 官方帳號。");
+        }, 1500);
+        return;
+    }
+
+    // 🌟 正式用戶 (LINE/TG) 查詢邏輯
     const name = document.getElementById('in-name').value.trim();
     const area = document.getElementById('in-area').value;
     const ageRange = document.getElementById('in-age').value;
@@ -200,16 +125,17 @@ async function handleSearch() {
     const hName = await hashData(name);
     const hPhone = phoneClean ? await hashData(phoneClean) : "";
 
-    // 🌟 修正：將 UID 與平台資訊加入搜尋封包
     const payload = {
         action: "search",
         uid: currentUser.uid,
         platform: currentUser.platform,
+        limit: currentUser.quota,
         hName,
         hPhone,
         area,
         ageRange
     };
+
     console.log("🚀 [搜尋 Payload]:", payload);
 
     setTimeout(() => {
@@ -230,7 +156,7 @@ function updateResultsUI(input) {
         // Demo 模式
         const R = input;
 
-        // 💡 修正：全面改為中立的履約狀態描述
+        // 💡 中立的履約狀態描述
         let cfg = { score: 5, color: 'green', text: '🟢 履約狀況良好' };
         if (R > 80) cfg = { score: 99, color: 'red', text: '🔴 建議加強履約保證' };
         else if (R > 50) cfg = { score: 60, color: 'orange', text: '🟠 履約特徵觀察中' };
@@ -253,7 +179,7 @@ function updateResultsUI(input) {
                 courtLink.href = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
                 courtLink.innerText = 'https://judgment.judicial.gov.tw/FJUD/ (示意網址)';
                 courtLink.style.display = 'block';
-                courtLink.setAttribute('rel', 'noopener noreferrer'); // 隱形斗篷
+                courtLink.setAttribute('rel', 'noopener noreferrer');
             }
             if (courtEmpty) courtEmpty.style.display = 'none';
 
@@ -380,20 +306,16 @@ function setReportType(type) {
 
 // --- 渲染特徵標籤 (中立合併版) ---
 function renderTags() {
-    // 現在只需抓取單一容器
     const container = document.getElementById('tag-container');
     if (!container) return;
 
-    container.innerHTML = ''; // 清空舊標籤
+    container.innerHTML = '';
 
-    // 依據當前身分 (tenant 或 landlord) 載入標籤
     TAG_LIBRARY[currentReportType].forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
-        // 不再區分好壞的視覺影響，統一當作特徵處理
         chip.innerText = tag.text;
 
-        // 點擊選取邏輯
         chip.onclick = () => {
             if (selectedTags.has(tag.text)) {
                 selectedTags.delete(tag.text);
@@ -409,7 +331,6 @@ function renderTags() {
 }
 
 async function submitReport() {
-    // 🌟 擷取所有表單內容 (包含新增的防禦欄位)
     const area = document.getElementById('report-area').value;
     const name = document.getElementById('report-name').value.trim();
     const age = document.getElementById('report-age').value;
@@ -419,13 +340,11 @@ async function submitReport() {
 
     const phoneClean = String(phoneRaw).replace(/\D/g, '').slice(0, 4);
 
-    // 必填驗證
     if (!isAgreed) return alert("請勾選同意法律免責切結書");
     if (!area || !name || !age || !year) return alert("請完整填寫生活圈、姓名、年齡與發生年份");
     if (phoneClean.length !== 4) return alert("電話末四碼必須為 4 位數字");
     if (selectedTags.size === 0) return alert("請至少選擇一個特徵標籤");
 
-    // 🌟 擷取身分專屬欄位
     let specificData = {};
     if (currentReportType === 'tenant') {
         const tTarget = document.getElementById('report-tenant-target');
@@ -444,7 +363,6 @@ async function submitReport() {
     const hName = await hashData(name);
     const hPhone = await hashData(phoneClean);
 
-    // 🌟 升級版 Payload：加入 UID、平台與所有新欄位
     const payload = {
         action: "report",
         uid: currentUser.uid,
@@ -472,7 +390,10 @@ async function submitReport() {
 
 /** 開啟回報視圖 */
 function openReportView() {
-    // 🌟 修正：權限不對等防禦 (阻擋 Telegram 寫入)
+    if (currentUser.platform === 'WEB' || currentUser.uid === 'BLOCKED') {
+        alert("🔒 安全驗證要求：\n請使用 LINE 官方帳號開啟本系統，以解鎖建立民間履約回報之權限。");
+        return;
+    }
     if (currentUser.platform === 'TELEGRAM') {
         alert("🔒 訪客權限限制：\n為確保資料庫真實性，Telegram 環境目前僅開放「查詢」功能。若需建立民間履約回報，請改用 LINE 官方帳號開啟本系統。");
         return;
@@ -500,7 +421,6 @@ function resetApp() {
     if (reportYear) reportYear.selectedIndex = 0;
     if (agreement) agreement.checked = false;
 
-    // 清空專屬欄位
     const selects = document.querySelectorAll('.dynamic-fields select');
     selects.forEach(s => s.selectedIndex = 0);
 
@@ -536,9 +456,7 @@ async function updateLiveStats() {
 
 // --- 9. 初始化 ---
 window.onload = async () => {
-    // 🌟 新增：系統啟動時先執行環境偵測
     await initializeAuth();
-
     switchView('view-search');
     renderTags();
     updateLiveStats();
