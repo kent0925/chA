@@ -144,27 +144,22 @@ async function handleSearch() {
     }, 1500);
 }
 
-// --- 5. 結果渲染引擎 ---
+// --- 5. 結果渲染引擎 (前端完全無分數版) ---
 function updateResultsUI(input) {
-    const scoreVal = document.querySelector('.score-value');
     const statusTag = document.querySelector('.status-tag');
     const courtCard = document.querySelector('.court-data');
     const userCard = document.querySelector('.user-data');
     const legalFooter = document.querySelector('.legal-footer');
 
+    // ── 模式判斷 ──
     if (typeof input === 'number') {
-        // Demo 模式
+        // 【Demo 測試模式】: 這邊的數字是我們寫死在前端測試用的，不會產生真實的封包外洩資安問題
         const R = input;
+        let cfg = { color: 'green', text: '🟢 查無顯著關聯紀錄' };
+        if (R > 80) cfg = { color: 'red', text: '🔴 具備密集關聯紀錄' };
+        else if (R > 50) cfg = { color: 'orange', text: '🟠 具備多項關聯紀錄' };
+        else if (R > 20) cfg = { color: 'yellow', text: '🟡 具備少數關聯紀錄' };
 
-        // 💡 中立的履約狀態描述
-        let cfg = { score: 5, color: 'green', text: '🟢 履約狀況良好' };
-        if (R > 80) cfg = { score: 99, color: 'red', text: '🔴 建議加強履約保證' };
-        else if (R > 50) cfg = { score: 60, color: 'orange', text: '🟠 履約特徵觀察中' };
-        else if (R > 20) cfg = { score: 30, color: 'yellow', text: '🟡 輕微履約爭議' };
-        if (scoreVal) {
-            scoreVal.innerText = cfg.score;
-            scoreVal.className = 'score-value ' + cfg.color;
-        }
         if (statusTag) {
             statusTag.innerText = cfg.text;
             statusTag.className = 'status-tag text-' + cfg.color;
@@ -172,7 +167,7 @@ function updateResultsUI(input) {
         if (courtCard) courtCard.className = 'result-card court-data border-' + cfg.color;
         if (userCard) userCard.className = 'result-card user-data border-' + cfg.color;
 
-        if (cfg.score === 99) {
+        if (R > 80) {
             const courtLink = document.getElementById('res-court-link');
             const courtEmpty = document.getElementById('res-court-empty');
             if (courtLink) {
@@ -199,17 +194,24 @@ function updateResultsUI(input) {
             if (userCard) userCard.style.display = 'none';
             if (legalFooter) legalFooter.style.display = 'none';
         }
-    } else {
-        const { score, courtInfo, userInfo } = input;
-        let cfg = { color: 'green', text: '🟢 履約狀況良好' };
-        if (score >= 80) cfg = { color: 'red', text: '🔴 建議加強履約保證' };
-        else if (score >= 50) cfg = { color: 'orange', text: '🟠 風險觀察中' };
-        else if (score >= 20) cfg = { color: 'yellow', text: '🟡 輕微履約爭議' };
 
-        if (scoreVal) {
-            scoreVal.innerText = score;
-            scoreVal.className = `score-value ${cfg.color}`;
+    } else {
+        // 【正式連線模式】: 與 GAS 後端對接
+        // 💡 關鍵升級：前端不再接收 "score"，而是接收後端判定好的抽象代號 "riskLevel"
+        const { riskLevel, courtInfo, userInfo } = input;
+
+        let cfg;
+        // 前端徹底淪為只負責顯示外觀的「笨蛋(Dumb UI)」，不含任何評分計算邏輯
+        if (riskLevel === 'HIGH') {
+            cfg = { color: 'red', text: '🔴 具備密集關聯紀錄' };
+        } else if (riskLevel === 'MEDIUM') {
+            cfg = { color: 'orange', text: '🟠 具備多項關聯紀錄' };
+        } else if (riskLevel === 'LOW') {
+            cfg = { color: 'yellow', text: '🟡 具備少數關聯紀錄' };
+        } else {
+            cfg = { color: 'green', text: '🟢 查無顯著關聯紀錄' };
         }
+
         if (statusTag) {
             statusTag.className = `status-tag text-${cfg.color}`;
             statusTag.innerText = cfg.text;
@@ -381,7 +383,7 @@ async function submitReport() {
     console.log("🚀 [回報 Payload]:", payload);
 
     setTimeout(() => {
-        alert("✅ 回報已完成加密傳輸。個資已於手機端銷毀。");
+        alert("✅ 紀錄已完成單向加密建檔。原始輸入資訊已於本地端清除。");
         resetApp();
     }, 1200);
 }
@@ -391,11 +393,11 @@ async function submitReport() {
 /** 開啟回報視圖 */
 function openReportView() {
     if (currentUser.platform === 'WEB' || currentUser.uid === 'BLOCKED') {
-        alert("🔒 安全驗證要求：\n請使用 LINE 官方帳號開啟本系統，以解鎖建立民間履約回報之權限。");
+        alert("🔒 安全驗證要求：\n請使用 LINE 開啟本系統，以解鎖建立履約紀錄建檔之權限。");
         return;
     }
     if (currentUser.platform === 'TELEGRAM') {
-        alert("🔒 訪客權限限制：\n為確保資料庫真實性，Telegram 環境目前僅開放「查詢」功能。若需建立民間履約回報，請改用 LINE 官方帳號開啟本系統。");
+        alert("🔒 訪客權限限制：\n為確保資料庫真實性，Telegram 環境目前僅開放「查詢」功能。若需新增履約紀錄，請改用 LINE 官方帳號開啟本系統。");
         return;
     }
 
@@ -434,7 +436,11 @@ function resetApp() {
 }
 
 function openTakedownForm() {
-    alert("已啟動資料查核程序。請將異議說明連同相關證明發送至申訴信箱，我們將於 72 小時內完成查核並暫時隱藏有爭議之資訊。");
+    // 💡 替換說明：請將 @your_line_oa_id 改為你真實的 LINE 官方帳號 ID (記得保留 @ 符號)
+    const lineOaUrl = "https://line.me/R/ti/p/@your_line_oa_id";
+
+    // 開啟新視窗/喚醒 LINE App 進入聊天室
+    window.open(lineOaUrl, '_blank');
 }
 
 // --- 8. 即時數據儀表板更新 ---
@@ -454,9 +460,32 @@ async function updateLiveStats() {
     }
 }
 
+// --- 8.5 動態生成發生年份 ---
+function generateYearOptions() {
+    const yearSelect = document.getElementById('report-year');
+    if (!yearSelect) return;
+
+    // 自動取得當下時間並換算為民國年
+    const currentYear = new Date().getFullYear();
+    const twYear = currentYear - 1911; // 系統將自動算出 115
+
+    // 清除舊選項，確保只保留第一個預設值
+    yearSelect.length = 1;
+
+    // 動態新增選項 1：今年 (例如：115年)
+    yearSelect.add(new Option(`${twYear}年 (近期)`, twYear.toString()));
+
+    // 動態新增選項 2：前三年 (例如：112-114年)
+    yearSelect.add(new Option(`${twYear - 3}-${twYear - 1}年`, `${twYear - 3}-${twYear - 1}`));
+
+    // 動態新增選項 3：更早以前 (例如：111年以前)
+    yearSelect.add(new Option(`${twYear - 4}年以前`, `${twYear - 4}以前`));
+}
+
 // --- 9. 初始化 ---
 window.onload = async () => {
     await initializeAuth();
+    generateYearOptions(); // 🌟 呼叫動態年份生成
     switchView('view-search');
     renderTags();
     updateLiveStats();
