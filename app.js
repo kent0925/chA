@@ -91,8 +91,7 @@ const TAG_LIBRARY = {
         { id: "L12", text: "🚫 拒絕租金補貼", impact: "bad" },
         { id: "L13", text: "🤝 溝通明理友善", impact: "good" }, // 新增：優良溝通
         { id: "L14", text: "💢 情緒勒索施壓", impact: "bad" }   // 新增：風險溝通
-    ]
-   // 👇 新增這段學生專屬的標籤字典
+    ],
     student: [
         { id: "S1", text: "🎓 專注學業單純", impact: "good" },
         { id: "S2", text: "🎉 帶人開趴喧嘩", impact: "bad" },
@@ -102,7 +101,7 @@ const TAG_LIBRARY = {
         { id: "S6", text: "🛡️ 家長過度介入", impact: "bad" },
         { id: "S7", text: "💰 租金按時繳納", impact: "good" },
         { id: "S8", text: "💸 寒暑假欠繳/空窗", impact: "bad" }
-    ]
+    ],
 };
 
 let currentReportType = 'tenant';
