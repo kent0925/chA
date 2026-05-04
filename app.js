@@ -78,17 +78,30 @@ const TAG_LIBRARY = {
     ],
     landlord: [
         { id: "L1", text: "💸 押金如期返還", impact: "good" },
-        { id: "L2", text: "🔍 押金返還爭議", impact: "bad" },
+        { id: "L2", text: "🔍 押金扣留爭議", impact: "bad" },
         { id: "L3", text: "⚡ 修繕處理迅速", impact: "good" },
-        { id: "L4", text: "⏳ 修繕進度緩慢", impact: "bad" },
-        { id: "L5", text: "🏠 尊重個人隱私", impact: "good" },
+        { id: "L4", text: "⏳ 修繕推託延遲", impact: "bad" },
+        { id: "L5", text: "🏠 尊重房客隱私", impact: "good" },
         { id: "L6", text: "👣 未經授權入內", impact: "bad" },
-        { id: "L7", text: "📺 附屬設備完善", impact: "good" },
-        { id: "L8", text: "📈 租金調整頻繁", impact: "bad" },
+        { id: "L7", text: "💧 台水台電計費", impact: "good" }, // 新增：優良水電
+        { id: "L8", text: "📈 超收水電費用", impact: "bad" },  // 新增：風險水電
         { id: "L9", text: "📜 契約條款透明", impact: "good" },
-        { id: "L10", text: "⚖️ 契約條款爭議", impact: "bad" },
-        { id: "L11", text: "👼 配合申報稅費", impact: "good" },
-        { id: "L12", text: "🚫 拒絕租金補貼", impact: "bad" }
+        { id: "L10", text: "⚖️ 契約條款嚴苛", impact: "bad" },
+        { id: "L11", text: "👼 配合申報稅補", impact: "good" },
+        { id: "L12", text: "🚫 拒絕租金補貼", impact: "bad" },
+        { id: "L13", text: "🤝 溝通明理友善", impact: "good" }, // 新增：優良溝通
+        { id: "L14", text: "💢 情緒勒索施壓", impact: "bad" }   // 新增：風險溝通
+    ]
+   // 👇 新增這段學生專屬的標籤字典
+    student: [
+        { id: "S1", text: "🎓 專注學業單純", impact: "good" },
+        { id: "S2", text: "🎉 帶人開趴喧嘩", impact: "bad" },
+        { id: "S3", text: "🧹 宿舍維持整潔", impact: "good" },
+        { id: "S4", text: "🛵 機車違規停放", impact: "bad" },
+        { id: "S5", text: "🤝 家長理性溝通", impact: "good" },
+        { id: "S6", text: "🛡️ 家長過度介入", impact: "bad" },
+        { id: "S7", text: "💰 租金按時繳納", impact: "good" },
+        { id: "S8", text: "💸 寒暑假欠繳/空窗", impact: "bad" }
     ]
 };
 
@@ -284,67 +297,64 @@ function renderResultTags(containerId, tags, cssClass) {
 }
 
 // --- 6. 回報系統邏輯 ---
+// --- 輔助函式：切換回報身分 ---
 function setReportType(type) {
+    // 1. 更新全域變數
     currentReportType = type;
-    selectedTags.clear();
 
-    const btnTenant = document.getElementById('btn-report-tenant');
-    const btnLandlord = document.getElementById('btn-report-landlord');
-    if (btnTenant) btnTenant.className = type === 'tenant' ? 'active' : '';
-    if (btnLandlord) btnLandlord.className = type === 'landlord' ? 'active' : '';
+    // 2. 切換按鈕的視覺外觀 (藍色 active 狀態)
+    document.getElementById('btn-report-tenant').classList.remove('active');
+    document.getElementById('btn-report-student').classList.remove('active');
+    document.getElementById('btn-report-landlord').classList.remove('active');
+    document.getElementById(`btn-report-${type}`).classList.add('active');
 
-    const lblName = document.getElementById('lbl-name');
-    const lblAge = document.getElementById('lbl-age');
-    if (lblName) lblName.innerHTML = type === 'tenant' ? '房客姓名 <span class="required">*</span>' : '房東/出租人姓名 <span class="required">*</span>';
-    if (lblAge) lblAge.innerHTML = type === 'tenant' ? '房客目測年齡 <span class="required">*</span>' : '房東目測年齡 <span class="required">*</span>';
-
-    // 動態切換專屬欄位區塊
+    // 3. 動態切換專屬輸入欄位 (隱藏/顯示)
     const fieldsTenant = document.getElementById('fields-tenant');
     const fieldsLandlord = document.getElementById('fields-landlord');
-    if (type === 'tenant') {
+
+    if (type === 'tenant' || type === 'student') {
+        // 房客與學生，共用「承租型態與租金」欄位
         if (fieldsTenant) fieldsTenant.style.display = 'block';
         if (fieldsLandlord) fieldsLandlord.style.display = 'none';
-    } else {
+    } else if (type === 'landlord') {
+        // 房東，顯示「出租人屬性與出租型態」欄位
         if (fieldsTenant) fieldsTenant.style.display = 'none';
         if (fieldsLandlord) fieldsLandlord.style.display = 'block';
     }
 
-    renderTags();
+    // 4. 重置並重新渲染光譜標籤
+    selectedTags.clear(); // 清空已選標籤
+    if (typeof renderTags === 'function') {
+        renderTags(type); // 呼叫你寫好的渲染函式，印出對應字典
+    }
 }
 
-// --- 渲染特徵標籤 (分區版：優良 / 風險) ---
+// --- 渲染特徵標籤 (中立合併版) ---
 function renderTags() {
-    const containerPositive = document.getElementById('report-tags-positive');
-    const containerNegative = document.getElementById('report-tags-negative');
-    if (!containerPositive || !containerNegative) return;
+    const container = document.getElementById('tag-container');
+    if (!container) return;
 
-    containerPositive.innerHTML = '';
-    containerNegative.innerHTML = '';
+    container.innerHTML = '';
 
     TAG_LIBRARY[currentReportType].forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
-        chip.dataset.impact = tag.impact;
+        chip.dataset.impact = tag.impact; // 保留 data-impact 供 CSS hover 效果使用
         chip.innerText = tag.text;
 
         chip.onclick = () => {
-            if (selectedTags.has(tag.id)) {
-                selectedTags.delete(tag.id);
+            if (selectedTags.has(tag.text)) {
+                selectedTags.delete(tag.text);
                 chip.classList.remove('selected');
             } else {
-                selectedTags.add(tag.id);
+                selectedTags.add(tag.text);
                 chip.classList.add('selected');
             }
         };
 
-        if (tag.impact === 'good') {
-            containerPositive.appendChild(chip);
-        } else {
-            containerNegative.appendChild(chip);
-        }
+        container.appendChild(chip);
     });
 }
-
 
 async function submitReport() {
     const area = document.getElementById('report-area').value;
@@ -419,13 +429,6 @@ function openReportView() {
     switchView('view-report');
     renderTags();
 }
-
-/** 🔧 開發測試用：強制進入建檔（不受平台限制）*/
-function forceOpenReport() {
-    switchView('view-report');
-    renderTags();
-}
-
 
 /** 返回搜尋視圖，並重置所有輸入 */
 function resetApp() {
@@ -534,96 +537,3 @@ window.onload = async () => {
     renderTags();
     updateLiveStats();
 };
-
-// ==========================================
-// ⚖️ 彈出視窗控制區塊 (隱私權與免責聲明)
-// ==========================================
-function openDisclaimer() {
-    const modal = document.getElementById('disclaimer-modal');
-    if (modal) modal.style.display = 'flex';
-}
-
-function closeDisclaimer() {
-    const modal = document.getElementById('disclaimer-modal');
-    if (modal) modal.style.display = 'none';
-}
-
-// ==========================================
-// 🎨 渲染查詢結果：光譜 UI 動態生成
-// ==========================================
-function renderUserResults(matchCount, tagsArray) {
-    const card = document.querySelector('.result-card.user-data');
-    const title = document.getElementById('res-user-title');
-    const tagsContainer = document.getElementById('res-user-tags');
-
-    // 如果查無紀錄，繼續隱藏卡片並中斷執行
-    if (!matchCount || matchCount === 0) {
-        card.style.display = 'none';
-        return;
-    }
-
-    // 1. 顯示卡片並更新標題數量
-    card.style.display = 'block';
-    title.innerText = `共 ${matchCount} 筆關聯紀錄`;
-
-    // 清空舊的標籤
-    tagsContainer.innerHTML = '';
-
-    // 2. 將雙向字典攤平，方便快速搜尋比對
-    const allDictTags = [...TAG_LIBRARY.tenant, ...TAG_LIBRARY.landlord];
-
-    let hasGood = false;
-    let hasBad = false;
-
-    // 3. 迴圈生成標籤，並自動上色
-    tagsArray.forEach(tagText => {
-        // 去字典裡找這個標籤的屬性
-        const foundTag = allDictTags.find(t => t.text === tagText);
-        const impact = foundTag ? foundTag.impact : 'neutral';
-
-        // 建立標籤 DOM
-        const span = document.createElement('span');
-        span.innerText = tagText;
-        // 基本樣式設定
-        span.style.display = 'inline-block';
-        span.style.padding = '4px 8px';
-        span.style.margin = '3px';
-        span.style.borderRadius = '4px';
-        span.style.fontSize = '0.85rem';
-        span.style.fontWeight = 'bold';
-
-        // 依照 impact 屬性套用對應光譜顏色
-        if (impact === 'good') {
-            span.style.backgroundColor = 'rgba(46, 204, 113, 0.15)'; // 淺綠底
-            span.style.color = '#2ecc71'; // 綠字
-            span.style.border = '1px solid #2ecc71';
-            hasGood = true;
-        } else if (impact === 'bad') {
-            span.style.backgroundColor = 'rgba(231, 76, 60, 0.15)'; // 淺紅底
-            span.style.color = '#e74c3c'; // 紅字
-            span.style.border = '1px solid #e74c3c';
-            hasBad = true;
-        } else {
-            span.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-            span.style.color = '#ccc';
-            span.style.border = '1px solid #666';
-        }
-
-        tagsContainer.appendChild(span);
-    });
-
-    // 4. 動態調整外框顏色 (光譜總結)
-    // 先移除所有可能的邊框 class
-    card.classList.remove('border-green', 'border-red', 'border-warning');
-
-    if (hasBad && !hasGood) {
-        card.classList.add('border-red'); // 全負面：紅框
-        card.style.borderLeft = "4px solid #e74c3c";
-    } else if (hasGood && !hasBad) {
-        card.classList.add('border-green'); // 全正面：綠框
-        card.style.borderLeft = "4px solid #2ecc71";
-    } else {
-        card.classList.add('border-warning'); // 好壞參半：橘框 (需在 CSS 補上邊框色)
-        card.style.borderLeft = "4px solid #f39c12";
-    }
-}

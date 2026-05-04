@@ -86,26 +86,10 @@
                 <div class="tag-row"></div>
             </div>
 
-            <div class="result-card user-data border-green" style="display: none;" id="res-user-card">
+            <div class="result-card user-data border-green" style="display: none;">
                 <div class="card-tag">👤 平台建檔紀錄</div>
                 <h3 id="res-user-title" style="margin: 5px 0 10px; font-size: 14px;">共 0 筆回報</h3>
-
-                <!-- 優良履約特徵統計 -->
-                <div id="res-user-good-section" style="margin-bottom: 10px; padding: 8px 10px; background: rgba(46,204,113,0.08); border-left: 3px solid #2ecc71; border-radius: 4px; display: none;">
-                    <span style="font-size: 0.8rem; color: #2ecc71; font-weight: bold; display: block; margin-bottom: 6px;">🌟 優良履約特徵</span>
-                    <div id="res-user-good-tags" class="tag-row"></div>
-                    <div id="res-user-good-count" style="font-size: 0.75rem; color: #888; margin-top: 4px;"></div>
-                </div>
-
-                <!-- 風險客觀事實統計 -->
-                <div id="res-user-bad-section" style="padding: 8px 10px; background: rgba(231,76,60,0.08); border-left: 3px solid #e74c3c; border-radius: 4px; display: none;">
-                    <span style="font-size: 0.8rem; color: #e74c3c; font-weight: bold; display: block; margin-bottom: 6px;">⚠️ 風險客觀事實</span>
-                    <div id="res-user-bad-tags" class="tag-row"></div>
-                    <div id="res-user-bad-count" style="font-size: 0.75rem; color: #888; margin-top: 4px;"></div>
-                </div>
-
-                <!-- fallback: 無分類時顯示 -->
-                <div id="res-user-tags" class="tag-row" style="display: none;"></div>
+                <div id="res-user-tags" class="tag-row"></div>
             </div>
 
             <div class="legal-footer" style="display: none;">
@@ -131,7 +115,8 @@
                 <div class="card-tag">👤 建立民間履約回報</div>
 
                 <div class="identity-switch">
-                    <button id="btn-report-tenant" class="active" onclick="setReportType('tenant')">新增房客紀錄</button>
+                    <button id="btn-report-tenant" class="active" onclick="setReportType('tenant')">新增一般房客</button>
+                    <button id="btn-report-student" onclick="setReportType('student')">新增學生房客</button>
                     <button id="btn-report-landlord" onclick="setReportType('landlord')">新增房東紀錄</button>
                 </div>
 
@@ -227,37 +212,18 @@
                 </div>
 
                 <div class="input-group">
-                    <label>請選擇客觀事實特徵 (可複選) <span class="required">*</span></label>
-                    <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">請依據真實情況，點選符合之履約特徵，建立客觀光譜。</p>
-
-                    <div
-                        style="margin-bottom: 12px; padding: 10px; background: rgba(46, 204, 113, 0.1); border-left: 3px solid #2ecc71; border-radius: 4px;">
-                        <span
-                            style="font-size: 0.85rem; color: #2ecc71; display: block; margin-bottom: 8px; font-weight: bold;">🌟
-                            優良履約特徵</span>
-                        <div class="tags-container" id="report-tags-positive">
-                        </div>
-                    </div>
-
-                    <div
-                        style="padding: 10px; background: rgba(231, 76, 60, 0.1); border-left: 3px solid #e74c3c; border-radius: 4px;">
-                        <span
-                            style="font-size: 0.85rem; color: #e74c3c; display: block; margin-bottom: 8px; font-weight: bold;">⚠️
-                            風險客觀事實</span>
-                        <div class="tags-container" id="report-tags-negative">
-                        </div>
+                    <label>履約行為特徵 (可複選)</label>
+                    <div id="tag-container" class="tag-selector-grid">
                     </div>
                 </div>
 
-                <div class="input-group checkbox-agree-group"
-                    style="margin-top: 15px;">
-                    <label class="agree-label" for="report-agreement">
-                        <input type="checkbox" id="report-agreement" required class="agree-checkbox">
-                        <span class="agree-text">
-                            我已詳閱並同意 <a href="javascript:void(0)" onclick="openDisclaimer()"
-                                style="color: #3498db; text-decoration: underline; font-weight: bold;">《隱私權與免責切結聲明》</a>。<br>
-                            <strong>法律免責切結：</strong>本人切結以上回報皆屬客觀事實，且本人握有相關租約、對話或毀損照片等客觀證據。若遇司法調查，本人願自負相關法律責任，與本平台無涉。
-                        </span>
+                <div class="input-group checkbox-group"
+                    style="margin-top: 15px; padding: 10px; background-color: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
+                    <label
+                        style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 13px; color: #555; line-height: 1.5; font-weight: normal;">
+                        <input type="checkbox" id="report-agreement" required
+                            style="margin-top: 3px; transform: scale(1.2);">
+                        <span><strong>法律免責切結：</strong>本人切結以上回報皆屬客觀事實，且本人握有相關租約、對話或毀損照片等客觀證據。若遇司法調查，本人願自負相關法律責任，與本平台無涉。</span>
                     </label>
                 </div>
 
@@ -271,50 +237,6 @@
         </footer>
     </div>
     <script src="app.js"></script>
-
-    <div id="disclaimer-modal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; padding: 20px; backdrop-filter: blur(5px);">
-        <div
-            style="background: #1a1a1a; padding: 25px; border-radius: 10px; max-width: 600px; width: 100%; max-height: 85vh; overflow-y: auto; border: 1px solid #333; color: #ddd; line-height: 1.6; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <h2
-                style="color: #fff; border-bottom: 1px solid #444; padding-bottom: 12px; margin-top: 0; font-size: 1.3rem;">
-                🛡️ 蒙眼 - 隱私權與免責切結聲明</h2>
-
-            <div style="font-size: 0.9rem; margin-top: 15px;">
-                <p>歡迎使用本去識別化租賃數據庫（以下簡稱「本平台」）。為保障您的權益及釐清法律責任，請仔細閱讀以下聲明：</p>
-
-                <h4 style="color: #3498db; margin-bottom: 5px;">一、 零個資儲存與去識別化技術聲明</h4>
-                <ul style="padding-left: 20px; margin-top: 0; color: #bbb;">
-                    <li>本平台嚴格遵守《個人資料保護法》之規範，落實資料最小化原則。</li>
-                    <li>系統採用高強度「單向不可逆雜湊演算法（SHA-256）」。您輸入之姓名與電話末四碼僅於前端進行特徵碼運算，<strong>伺服器端絕對不儲存、不傳輸、不留存任何可直接或間接識別特定個人之明文資料</strong>。
-                    </li>
-                </ul>
-
-                <h4 style="color: #3498db; margin-bottom: 5px;">二、 建檔者（回報方）法律責任切結</h4>
-                <ul style="padding-left: 20px; margin-top: 0; color: #bbb;">
-                    <li><strong>客觀事實擔保：</strong>您明確知悉並擔保，透過本平台建檔之所有履約紀錄與特徵標籤，均基於真實發生之客觀事實，絕無捏造、抹黑、毀謗或惡意報復之情事。</li>
-                    <li><strong>責任歸屬：</strong>本平台僅為提供去識別化運算與關聯度呈現之「中立技術載體」，不介入實質租賃糾紛。若因您提供不實資訊致第三方名譽受損，<strong>一切民刑事責任（如：妨害名譽）均由建檔者自行承擔</strong>，與本平台無涉。
-                    </li>
-                </ul>
-
-                <h4 style="color: #3498db; margin-bottom: 5px;">三、 查詢結果與系統免責聲明</h4>
-                <ul style="padding-left: 20px; margin-top: 0; color: #bbb;">
-                    <li><strong>關聯性誤差：</strong>本平台光譜比對結果，僅代表雜湊特徵碼之重疊度。因社會客觀存在「同名同姓」或「合法改名」之情形，本平台不擔保查詢結果之絕對同一性。</li>
-                    <li><strong>無主觀評價：</strong>查詢結果僅供風險評估參考，不得作為拒絕交易或法律處分之唯一依據。查詢者應自行落實線下查證義務。</li>
-                </ul>
-            </div>
-
-            <button onclick="closeDisclaimer()"
-                style="margin-top: 20px; width: 100%; padding: 14px; background: #3498db; color: #fff; border: none; border-radius: 6px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: background 0.3s;">我已詳閱並了解</button>
-        </div>
-    </div>
-
-    <button
-        onclick="if(typeof forceOpenReport==='function'){forceOpenReport();}else{switchView('view-report');renderTags();}"
-        style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: #e74c3c; color: white; border: 2px solid white; padding: 12px 20px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer;">
-        🔧 開發測試：強制進入建檔
-    </button>
-
 </body>
 
 </html>
