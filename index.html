@@ -49,8 +49,7 @@
                 <div class="input-group">
                     <label for="in-phone">電話末四碼 (選填)</label>
                     <input type="tel" id="in-phone" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
-                        placeholder="請輸入 4 位數字"
-                        oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);">
+                        placeholder="請輸入 4 位數字" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);">
                 </div>
 
                 <button class="btn-primary" onclick="handleSearch()">🔍 查詢履約紀錄</button>
@@ -73,6 +72,24 @@
                     <div class="score-label">⚖️ 資料庫比對狀態</div>
                     <div class="status-tag text-green status-tag-hero">
                         比對中...</div>
+
+                    <!-- 風險滑軌（區段式光譜） -->
+                    <div id="risk-spectrum" class="risk-spectrum">
+                        <div class="spectrum-bar">
+                            <div class="spectrum-seg seg-green"></div>
+                            <div class="spectrum-seg seg-yellow"></div>
+                            <div class="spectrum-seg seg-orange"></div>
+                            <div class="spectrum-seg seg-red"></div>
+                        </div>
+                        <div id="spectrum-pointer" class="spectrum-pointer" style="left: 10%;"></div>
+                        <div class="spectrum-labels">
+                            <span>未偵測</span>
+                            <span>低度</span>
+                            <span>中度</span>
+                            <span>高度</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -100,9 +117,10 @@
 
                 <div class="disclaimer">
                     ⚠️ <b>系統免責與風險聲明：</b><br>
-                    1. 本系統採用單向去識別化雜湊（Hash）技術比對，不留存明文個資。<br>
-                    2. <b>資料庫檢索可能因當事人「同名同姓」或「合法改名」而產生關聯誤差。</b><br>
-                    3. 本光譜比對結果僅客觀呈現系統關聯度，不擔保資料之絕對正確性，亦不構成任何主觀評價或法律處分之唯一依據。查詢者應自行查證風險。
+                    1. 「本系統採用符合國際安全標準之單向雜湊（One-way Hash）去識別化技術進行數據比對，原始敏感個資不以明文形式存儲，以確保資訊處理之高度安全性與隱私保護。」<br>
+                    2. <b>「資料庫檢索結果受限於來源數據之時效性，可能因當事人『同名同姓』、『合法改名』或『紀錄更新延遲』而產生關聯誤差，使用者應理解系統顯示之結果僅供參考。」</b><br>
+                    3.
+                    「本光譜比對結果係依現有數據產出之關聯度分析，不具法律裁斷效力。使用者利用本資訊時應負查證義務，並確保其用途符合相關法令（如《個資法》、《妨害名譽》）；任何因誤用、濫用或未經複核而導致之法律爭議，應由使用者自行承擔。」
                 </div>
             </div>
 
@@ -155,9 +173,7 @@
                 <div class="input-group">
                     <label id="lbl-phone">電話末四碼 <span class="required">*</span></label>
                     <input type="tel" id="report-phone" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
-                        placeholder="例如: 5678"
-                        oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);"
-                        required>
+                        placeholder="例如: 5678" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);" required>
                 </div>
 
                 <div id="fields-tenant" class="dynamic-fields">

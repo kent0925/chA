@@ -196,89 +196,119 @@ async function handleSearch() {
     }
 }
 
-// --- 5. 結果渲染引擎 (前端完全無分數版) ---
+// --- 5. 結果渲染引擎 ---
+
+// 關聯度設定映射
+const CORRELATION_CFG = {
+    LOW:    { cls: 'correlation-low',    border: 'border-corr-low',    text: '⚪ 低度關聯：資訊點過少，僅姓名相符' },
+    MEDIUM: { cls: 'correlation-medium', border: 'border-corr-medium', text: '🟠 中度關聯：姓名與部分特徵相符' },
+    HIGH:   { cls: 'correlation-high',   border: 'border-corr-high',   text: '🔵 高度關聯：多項強特徵完全吻合' }
+};
+
+// 風險等級文字映射
+const RISK_CFG = {
+    HIGH:   { color: 'red',    text: '🔴 審核警訊：建議補足擔保條件，或評估拒絕承租' },
+    MEDIUM: { color: 'orange', text: '🟠 加強審核：建議查驗過往租屋紀錄或工作證明' },
+    LOW:    { color: 'yellow', text: '🟡 標準作業：建議維持一般徵信，並詳閱合約' },
+    NONE:   { color: 'green',  text: '🟢 快速通關：信用評比優異，建議列為優先承租對象' }
+};
+
 function updateResultsUI(input) {
     const statusTag = document.querySelector('.status-tag');
     const courtCard = document.querySelector('.court-data');
     const userCard = document.querySelector('.user-data');
     const legalFooter = document.querySelector('.legal-footer');
+    const corrBadge = document.getElementById('correlation-badge');
+    const queryRefEl = document.getElementById('query-ref');
 
     // ── 模式判斷 ──
     if (typeof input === 'number') {
-        // 【Demo 測試模式】: 閾值對齊後端 CIO 方案
+        // 【Demo 測試模式】
         const R = input;
-        let cfg = { color: 'green', text: '🟢 金級對象：信譽優良，建議優先成交' };
-        if (R > 80) cfg = { color: 'red', text: '🔴 地雷警示：極不建議交易' };
-        else if (R > 50) cfg = { color: 'orange', text: '🟠 高危對象：建議審慎評估' };
-        else if (R > 20) cfg = { color: 'yellow', text: '🟡 注意對象：建議加強合約' };
+        const riskKey = R > 80 ? 'HIGH' : R > 50 ? 'MEDIUM' : R > 20 ? 'LOW' : 'NONE';
+        const cfg = RISK_CFG[riskKey];
+        updateSpectrum(riskKey);
+        const corr = R > 80 ? 'MEDIUM' : 'LOW'; // Demo 固定為低/中度關聯
+        const corrCfg = CORRELATION_CFG[corr];
 
         if (statusTag) {
             statusTag.innerText = cfg.text;
-            statusTag.className = 'status-tag text-' + cfg.color;
+            statusTag.className = 'status-tag status-tag-hero text-' + cfg.color;
         }
-        if (courtCard) courtCard.className = 'result-card court-data border-' + cfg.color;
-        if (userCard) userCard.className = 'result-card user-data border-' + cfg.color;
+        // 卡片邊框使用關聯度顏色
+        if (courtCard) courtCard.className = 'result-card court-data ' + corrCfg.border;
+        if (userCard) userCard.className = 'result-card user-data ' + corrCfg.border;
+        // 關聯度標籤
+        if (corrBadge) {
+            corrBadge.className = 'correlation-badge ' + corrCfg.cls;
+            corrBadge.innerText = corrCfg.text;
+        }
+        // Demo 序號
+        const demoRef = 'MY-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-DEMO';
+        if (queryRefEl) queryRefEl.innerText = '查詢序號：' + demoRef;
+
+        // 渲染浮水印
+        renderWatermark(demoRef);
 
         if (R > 80) {
             const courtLink = document.getElementById('res-court-link');
             const courtEmpty = document.getElementById('res-court-empty');
             if (courtLink) {
                 courtLink.href = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
-                courtLink.innerText = '108年度重建簡字第39號'; // 示意字號
+                courtLink.innerText = '108年度重建簡字第39號';
                 courtLink.style.wordBreak = 'normal';
                 courtLink.style.display = 'block';
                 courtLink.setAttribute('rel', 'noopener noreferrer');
             }
             if (courtEmpty) courtEmpty.style.display = 'none';
-
             if (userCard) userCard.style.display = 'block';
             const userTitle = document.getElementById('res-user-title');
             if (userTitle) userTitle.innerText = '共 1 筆回報';
             const userTagsRow = document.getElementById('res-user-tags');
             if (userTagsRow) userTagsRow.innerHTML = `<span class="ui-tag user-tag">📦 雜物領主</span>`;
-
             if (legalFooter) legalFooter.style.display = 'block';
         } else {
             const courtLink = document.getElementById('res-court-link');
             const courtEmpty = document.getElementById('res-court-empty');
             if (courtLink) courtLink.style.display = 'none';
             if (courtEmpty) courtEmpty.style.display = 'block';
-
             if (userCard) userCard.style.display = 'none';
             if (legalFooter) legalFooter.style.display = 'none';
         }
 
     } else {
-        // 【正式連線模式】: 前端僅輸出「風險燈號」+「幽默風險提示」，不含任何評分邏輯
-        const { riskLevel, courtInfo, userInfo } = input;
+        // 【正式連線模式】
+        const { riskLevel, correlation, queryRef, courtInfo, userInfo } = input;
 
-        let cfg;
-        if (riskLevel === 'HIGH') {
-            cfg = { color: 'red', text: '🔴 地雷警示：極不建議交易' };
-        } else if (riskLevel === 'MEDIUM') {
-            cfg = { color: 'orange', text: '🟠 高危對象：建議審慎評估' };
-        } else if (riskLevel === 'LOW') {
-            cfg = { color: 'yellow', text: '🟡 注意對象：建議加強合約' };
-        } else {
-            cfg = { color: 'green', text: '🟢 金級對象：信譽優良，建議優先成交' };
-        }
-
+        // 風險文字 + 滑軌
+        const cfg = RISK_CFG[riskLevel] || RISK_CFG.NONE;
+        updateSpectrum(riskLevel || 'NONE');
         if (statusTag) {
-            statusTag.className = `status-tag text-${cfg.color}`;
+            statusTag.className = `status-tag status-tag-hero text-${cfg.color}`;
             statusTag.innerText = cfg.text;
         }
-        if (courtCard) courtCard.className = `result-card court-data border-${cfg.color}`;
-        if (userCard) userCard.className = `result-card user-data border-${cfg.color}`;
 
-        // 注意：court-data 卡片沒有 h3，使用 .card-tag 作為標題選擇器
-        const courtCardTag = courtCard ? courtCard.querySelector('.card-tag') : null;
+        // 關聯度顏色（卡片邊框 + 標籤）
+        const corrCfg = CORRELATION_CFG[correlation] || CORRELATION_CFG.LOW;
+        if (courtCard) courtCard.className = `result-card court-data ${corrCfg.border}`;
+        if (userCard) userCard.className = `result-card user-data ${corrCfg.border}`;
+        if (corrBadge) {
+            corrBadge.className = `correlation-badge ${corrCfg.cls}`;
+            corrBadge.innerText = corrCfg.text;
+        }
 
+        // 查詢序號
+        const ref = queryRef || '';
+        if (queryRefEl) queryRefEl.innerText = ref ? '查詢序號：' + ref : '';
+
+        // 渲染浮水印
+        renderWatermark(ref);
+
+        // court-data 卡片渲染
         const courtSummary = courtCard ? courtCard.querySelector('.summary') : null;
         if (courtSummary) {
             if (courtInfo && courtInfo.url) {
-                // 呼叫我們剛剛寫的輔助函式，把後端傳來的 sourceJID 轉成漂亮字號
                 const displayText = courtInfo.sourceJID ? formatJID(courtInfo.sourceJID) : '查看法院公開判決';
-
                 courtSummary.innerHTML = `<a href="${courtInfo.url}" target="_blank" rel="noopener noreferrer" style="color: #3498db; font-weight: bold; text-decoration: none;">${displayText}</a>`;
             } else {
                 courtSummary.innerText = "查無相關公開判決";
@@ -288,6 +318,7 @@ function updateResultsUI(input) {
         const courtTagRow = courtCard ? courtCard.querySelector('.tag-row') : null;
         if (courtTagRow) courtTagRow.innerHTML = '';
 
+        // user-data 卡片渲染
         if (userInfo && userInfo.found) {
             if (userCard) userCard.style.display = 'block';
             const userTitle = userCard.querySelector('h3');
@@ -304,7 +335,7 @@ function updateResultsUI(input) {
                 if (userInfo.tags && userInfo.tags.length > 0) {
                     userInfo.tags.forEach(tagText => {
                         const span = document.createElement('span');
-                        span.className = `ui-tag user-tag`;
+                        span.className = 'ui-tag user-tag';
                         span.innerText = tagText;
                         tagRow.appendChild(span);
                     });
@@ -318,7 +349,57 @@ function updateResultsUI(input) {
     }
 }
 
+// --- 5.5 浮水印渲染 ---
+function renderWatermark(queryRef) {
+    const container = document.getElementById('watermark-layer');
+    if (!container) return;
+    container.innerHTML = '';
 
+    const text = `⚠️ 本結果僅供參考，存在同名誤判風險　${queryRef}`;
+    const positions = [
+        { top: '8%',  left: '-5%' },
+        { top: '25%', left: '10%' },
+        { top: '42%', left: '-8%' },
+        { top: '58%', left: '15%' },
+        { top: '75%', left: '-3%' },
+        { top: '90%', left: '8%' }
+    ];
+
+    positions.forEach(pos => {
+        const el = document.createElement('div');
+        el.className = 'watermark-text';
+        el.innerText = text;
+        el.style.top = pos.top;
+        el.style.left = pos.left;
+        container.appendChild(el);
+    });
+}
+
+// --- 5.6 風險滑軌更新 ---
+function updateSpectrum(riskKey) {
+    const pointer = document.getElementById('spectrum-pointer');
+    if (!pointer) return;
+
+    // 四段各佔 25%，指標停在該區段中央
+    const posMap = {
+        NONE: '12.5%',   // 綠區中央
+        LOW: '37.5%',    // 黃區中央
+        MEDIUM: '62.5%', // 橘區中央
+        HIGH: '87.5%'    // 紅區中央
+    };
+
+    // 對應區段索引（0=綠, 1=黃, 2=橘, 3=紅）
+    const segIndex = { NONE: 0, LOW: 1, MEDIUM: 2, HIGH: 3 };
+
+    // 移動指標
+    pointer.style.left = posMap[riskKey] || '12.5%';
+
+    // 高亮對應色塊，其餘淡化
+    const segs = document.querySelectorAll('.spectrum-seg');
+    segs.forEach((seg, i) => {
+        seg.classList.toggle('active', i === segIndex[riskKey]);
+    });
+}
 
 // --- 6. 回報系統邏輯 ---
 // --- 輔助函式：切換回報身分 ---
