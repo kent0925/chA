@@ -207,10 +207,10 @@ function updateResultsUI(input) {
     if (typeof input === 'number') {
         // 【Demo 測試模式】: 閾值對齊後端 CIO 方案
         const R = input;
-        let cfg = { color: 'green', text: '🟢 未偵測異常關聯：建議依一般流程作業，視需要優化條件' };
-        if (R > 80) cfg = { color: 'red', text: '🔴 數據高度關聯：建議強化風險控管或評估承租必要性' };
-        else if (R > 50) cfg = { color: 'orange', text: '🟠 數據中度關聯：建議補強第三方擔保或查驗佐證資料' };
-        else if (R > 20) cfg = { color: 'yellow', text: '🟡 數據低度關聯：建議依標準程序查核，並落實約定事項' };
+        let cfg = { color: 'green', text: '建議依一般流程作業，視需要優化條件' };
+        if (R > 80) cfg = { color: 'red', text: '建議強化風險控管或評估承租必要性' };
+        else if (R > 50) cfg = { color: 'orange', text: '建議補強第三方擔保或查驗佐證資料' };
+        else if (R > 20) cfg = { color: 'yellow', text: '建議依標準程序查核，並落實約定事項' };
 
         // 更新滑軌指標位置
         const riskKey = R > 80 ? 'HIGH' : R > 50 ? 'MEDIUM' : R > 20 ? 'LOW' : 'NONE';
@@ -258,13 +258,13 @@ function updateResultsUI(input) {
 
         let cfg;
         if (riskLevel === 'HIGH') {
-            cfg = { color: 'red', text: '🔴 數據高度關聯：建議強化風險控管或評估承租必要性' };
+            cfg = { color: 'red', text: '建議強化風險控管或評估承租必要性' };
         } else if (riskLevel === 'MEDIUM') {
-            cfg = { color: 'orange', text: '🟠 數據中度關聯：建議補強第三方擔保或查驗佐證資料' };
+            cfg = { color: 'orange', text: '建議補強第三方擔保或查驗佐證資料' };
         } else if (riskLevel === 'LOW') {
-            cfg = { color: 'yellow', text: '🟡 數據低度關聯：建議依標準程序查核，並落實約定事項' };
+            cfg = { color: 'yellow', text: '建議依標準程序查核，並落實約定事項' };
         } else {
-            cfg = { color: 'green', text: '未偵測異常關聯：建議依一般流程作業，視需要優化條件' };
+            cfg = { color: 'green', text: '建議依一般流程作業，視需要優化條件' };
         }
 
         // 更新滑軌指標位置
