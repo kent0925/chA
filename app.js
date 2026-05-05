@@ -199,93 +199,43 @@ async function handleSearch() {
 // --- 5. 結果渲染引擎 ---
 function updateResultsUI(input) {
     const adviceEl = document.getElementById('risk-advice');
-    const userCard = document.querySelector('.user-data');
-    const legalFooter = document.querySelector('.legal-footer');
 
     // ── 模式判斷 ──
     if (typeof input === 'number') {
         // 【Demo 測試模式】
         const R = input;
-        let cfg = { color: 'green', text: '建議依一般流程作業，視需要優化條件' };
-        if (R > 80) cfg = { color: 'red', text: '建議強化風險控管或評估承租必要性' };
-        else if (R > 50) cfg = { color: 'orange', text: '建議補強第三方擔保或查驗佐證資料' };
-        else if (R > 20) cfg = { color: 'yellow', text: '建議依標準程序查核，並落實約定事項' };
+        let text = '建議依一般流程作業，視需要優化條件';
+        if (R > 80) text = '建議強化風險控管或評估承租必要性';
+        else if (R > 50) text = '建議補強第三方擔保或查驗佐證資料';
+        else if (R > 20) text = '建議依標準程序查核，並落實約定事項';
 
         // 更新滑軌指標
         const riskKey = R > 80 ? 'HIGH' : R > 50 ? 'MEDIUM' : R > 20 ? 'LOW' : 'NONE';
         updateSpectrum(riskKey);
 
         // 建議文字
-        if (adviceEl) adviceEl.innerText = cfg.text;
-
-        // 卡片邊框色
-        if (userCard) userCard.className = 'result-card user-data border-' + cfg.color;
-
-        // Demo：模擬有回報紀錄
-        if (R > 80) {
-            if (userCard) userCard.style.display = 'block';
-            const userTitle = document.getElementById('res-user-title');
-            if (userTitle) userTitle.innerText = '共 1 筆回報';
-            const userTagsRow = document.getElementById('res-user-tags');
-            if (userTagsRow) userTagsRow.innerHTML = `<span class="ui-tag user-tag">📦 雜物領主</span>`;
-            if (legalFooter) legalFooter.style.display = 'block';
-        } else {
-            if (userCard) userCard.style.display = 'none';
-            if (legalFooter) legalFooter.style.display = 'none';
-        }
+        if (adviceEl) adviceEl.innerText = text;
 
     } else {
         // 【正式連線模式】
-        const { riskLevel, courtInfo, userInfo } = input;
+        const { riskLevel } = input;
 
-        let cfg;
+        let text;
         if (riskLevel === 'HIGH') {
-            cfg = { color: 'red', text: '建議強化風險控管或評估承租必要性' };
+            text = '建議強化風險控管或評估承租必要性';
         } else if (riskLevel === 'MEDIUM') {
-            cfg = { color: 'orange', text: '建議補強第三方擔保或查驗佐證資料' };
+            text = '建議補強第三方擔保或查驗佐證資料';
         } else if (riskLevel === 'LOW') {
-            cfg = { color: 'yellow', text: '建議依標準程序查核，並落實約定事項' };
+            text = '建議依標準程序查核，並落實約定事項';
         } else {
-            cfg = { color: 'green', text: '建議依一般流程作業，視需要優化條件' };
+            text = '建議依一般流程作業，視需要優化條件';
         }
 
         // 更新滑軌指標
         updateSpectrum(riskLevel || 'NONE');
 
         // 建議文字
-        if (adviceEl) adviceEl.innerText = cfg.text;
-
-        // 卡片邊框色
-        if (userCard) userCard.className = `result-card user-data border-${cfg.color}`;
-
-        // 平台建檔紀錄
-        if (userInfo && userInfo.found) {
-            if (userCard) userCard.style.display = 'block';
-            const userTitle = userCard.querySelector('h3');
-            if (userTitle) {
-                userTitle.innerText = `共 ${userInfo.reportCount || 0} 筆回報`;
-                userTitle.style.display = 'block';
-            }
-            const userSummary = userCard.querySelector('.summary');
-            if (userSummary) userSummary.style.display = 'none';
-
-            const tagRow = userCard.querySelector('.tag-row');
-            if (tagRow) {
-                tagRow.innerHTML = '';
-                if (userInfo.tags && userInfo.tags.length > 0) {
-                    userInfo.tags.forEach(tagText => {
-                        const span = document.createElement('span');
-                        span.className = `ui-tag user-tag`;
-                        span.innerText = tagText;
-                        tagRow.appendChild(span);
-                    });
-                }
-            }
-            if (legalFooter) legalFooter.style.display = 'block';
-        } else {
-            if (userCard) userCard.style.display = 'none';
-            if (legalFooter) legalFooter.style.display = 'none';
-        }
+        if (adviceEl) adviceEl.innerText = text;
     }
 }
 
@@ -517,22 +467,16 @@ function openTakedownForm() {
 
 // --- 8. 即時數據儀表板更新 ---
 async function updateLiveStats() {
-    // Demo 預設值（當 GAS 未配置時使用）
-    const fallback = { courtCount: 5012345, userCount: 1204 };
+    const fallback = { userCount: 1204 };
     try {
         const result = await callGAS({ action: "stats" });
         const data = (result && result.status === 'ok') ? result : fallback;
-        const stCourt = document.getElementById('stat-court-num');
         const stUser = document.getElementById('stat-user-num');
-        if (stCourt) stCourt.innerText = (data.courtCount || 0).toLocaleString();
         if (stUser) stUser.innerText = (data.userCount || 0).toLocaleString();
         console.log("📊 儀表板數據已同步更新");
     } catch (error) {
         console.error("無法更新儀表板數據:", error);
-        // 失敗時使用 fallback
-        const stCourt = document.getElementById('stat-court-num');
         const stUser = document.getElementById('stat-user-num');
-        if (stCourt) stCourt.innerText = fallback.courtCount.toLocaleString();
         if (stUser) stUser.innerText = fallback.userCount.toLocaleString();
     }
 }

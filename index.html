@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="客觀、安全、去識別化的租賃數據庫，提供官方法院數據與平台建檔紀錄雙重比對。">
+    <meta name="description" content="客觀、安全、去識別化的租賃數據庫。">
     <title>租賃履約紀錄比對系統</title>
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -18,10 +18,6 @@
         </header>
 
         <div class="stats-dashboard">
-            <div class="stat-box official-stat">
-                <div class="stat-title">🏛️ 官方法院數據</div>
-                <div class="stat-number"><span id="stat-court-num">載入中</span> <span class="stat-unit">筆</span></div>
-            </div>
             <div class="stat-box user-stat">
                 <div class="stat-title">👤 民間回報數據</div>
                 <div class="stat-number"><span id="stat-user-num">載入中</span> <span class="stat-unit">筆</span></div>
@@ -94,150 +90,139 @@
                 </div>
             </div>
 
-            <div class="result-card user-data border-green" style="display: none;">
-                <div class="card-tag">👤 平台建檔紀錄</div>
-                <h3 id="res-user-title" class="res-user-title">共 0 筆回報</h3>
-                <div id="res-user-tags" class="tag-row"></div>
-            </div>
-
-            <div class="legal-footer" style="display: none;">
-                <div class="takedown-box">
-                    <p>對以上資訊有異議？</p>
-                    <button class="btn-small-outline" onclick="openTakedownForm()">📋 申請資料查核</button>
-                </div>
-
+            <div class="legal-footer">
                 <div class="disclaimer">
                     ⚠️ <b>系統免責與風險聲明：</b><br>
                     1. 「本系統採用符合國際安全標準之單向雜湊（One-way Hash）去識別化技術進行數據比對，原始敏感個資不以明文形式存儲，以確保資訊處理之高度安全性與隱私保護。」<br>
                     2. <b>「資料庫檢索結果受限於來源數據之時效性，可能因當事人『同名同姓』、『合法改名』或『紀錄更新延遲』而產生關聯誤差，使用者應理解系統顯示之結果僅供參考。」</b><br>
-                    3.
-                    「本光譜比對結果係依現有數據產出之關聯度分析，不具法律裁斷效力。使用者利用本資訊時應負查證義務，並確保其用途符合相關法令（如《個資法》、《妨害名譽》）；任何因誤用、濫用或未經複核而導致之法律爭議，應由使用者自行承擔。」
+                    3. 「本光譜比對結果係依現有數據產出之關聯度分析，不具法律裁斷效力。使用者利用本資訊時應負查證義務，並確保其用途符合相關法令（如《個資法》、《妨害名譽》）；任何因誤用、濫用或未經複核而導致之法律爭議，應由使用者自行承擔。」
                 </div>
             </div>
 
             <button class="btn-primary" onclick="resetApp()">🔙 返回重新搜尋</button>
         </section>
 
-        <section id="view-report" class="view hidden">
-            <div class="card user-data">
-                <div class="card-tag">👤 建立民間履約回報</div>
 
-                <div class="identity-switch">
-                    <button id="btn-report-tenant" class="active" onclick="setReportType('tenant')">新增一般房客</button>
-                    <button id="btn-report-student" onclick="setReportType('student')">新增學生房客</button>
-                    <button id="btn-report-landlord" onclick="setReportType('landlord')">新增房東紀錄</button>
-                </div>
+    <section id="view-report" class="view hidden">
+        <div class="card user-data">
+            <div class="card-tag">👤 建立民間履約回報</div>
 
-                <div class="input-group">
-                    <label>對象生活圈 <span class="required">*</span></label>
-                    <select id="report-area" required>
-                        <option value="" disabled selected>請選擇對象生活圈</option>
-                        <option value="AREA_PCDV">新北核心 (板橋/中永和/土城/三重/蘆洲)</option>
-                        <option value="AREA_TPDV">台北核心 (中正/大安/萬華/文山/新店)</option>
-                        <option value="AREA_SLDV">台北北區 (士林/北投/內湖/南港)</option>
-                        <option value="AREA_TYDV">桃園/中壢生活圈</option>
-                        <option value="AREA_JCDV">新竹/竹北生活圈</option>
-                        <option value="AREA_TCDV">台中核心生活圈</option>
-                        <option value="AREA_TNDV">台南核心生活圈</option>
-                        <option value="AREA_KSDV">高雄核心生活圈</option>
-                        <option value="AREA_EADV">宜花東生活圈 (宜蘭/花蓮/台東)</option>
-                        <option value="AREA_ISDV">外島/離島生活圈 (澎湖/金門/馬祖)</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label id="lbl-name">對象姓名 <span class="required">*</span></label>
-                    <input type="text" id="report-name" placeholder="請輸入真實姓名" required>
-                </div>
-
-                <div class="input-group">
-                    <label id="lbl-age">對象目測年齡 <span class="required">*</span></label>
-                    <select id="report-age" required>
-                        <option value="" disabled selected>請選擇年齡區間</option>
-                        <option value="AGE_20">20 - 30 歲</option>
-                        <option value="AGE_30">31 - 40 歲</option>
-                        <option value="AGE_40">41 - 50 歲</option>
-                        <option value="AGE_50">51 歲以上</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label id="lbl-phone">電話末四碼 <span class="required">*</span></label>
-                    <input type="tel" id="report-phone" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
-                        placeholder="例如: 5678" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);" required>
-                </div>
-
-                <div id="fields-tenant" class="dynamic-fields">
-                    <div class="input-group">
-                        <label>承租標的型態 <span class="required">*</span></label>
-                        <select id="report-tenant-target">
-                            <option value="" disabled selected>請選擇承租型態</option>
-                            <option value="住宅">一般住宅 (套雅房/整層)</option>
-                            <option value="店面">營業用店面</option>
-                            <option value="商辦">辦公室/廠房</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>每月租金級距 <span class="required">*</span></label>
-                        <select id="report-tenant-rent">
-                            <option value="" disabled selected>請選擇租金級距</option>
-                            <option value="1W內">1 萬元以內</option>
-                            <option value="1W-3W">1萬 ~ 3萬元</option>
-                            <option value="3W以上">3 萬元以上</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="fields-landlord" class="dynamic-fields" style="display: none;">
-                    <div class="input-group">
-                        <label>出租人屬性 <span class="required">*</span></label>
-                        <select id="report-landlord-type">
-                            <option value="" disabled selected>請選擇出租人屬性</option>
-                            <option value="屋主">屋主本人</option>
-                            <option value="二房東">二房東 (轉租)</option>
-                            <option value="代管">包租代管業者</option>
-                            <option value="仲介">一般仲介代理</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>主要出租型態 <span class="required">*</span></label>
-                        <select id="report-landlord-target">
-                            <option value="" disabled selected>請選擇出租型態</option>
-                            <option value="獨立套房">獨立套房</option>
-                            <option value="分租套雅房">分租套房/雅房</option>
-                            <option value="整層住家">整層住家</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label>事件發生年份 <span class="required">*</span></label>
-                    <select id="report-year" required>
-                        <option value="" disabled selected>請選擇發生年份</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label>履約行為特徵 (可複選)</label>
-                    <div id="tag-container" class="tag-selector-grid">
-                    </div>
-                </div>
-
-                <div class="input-group agreement-box">
-                    <label class="agreement-label">
-                        <input type="checkbox" id="report-agreement" class="agreement-checkbox" required>
-                        <span><strong>法律免責切結：</strong>本人切結以上回報皆屬客觀事實，且本人握有相關租約、對話或毀損照片等客觀證據。若遇司法調查，本人願自負相關法律責任，與本平台無涉。</span>
-                    </label>
-                </div>
-
-                <button class="btn-submit-yellow" onclick="submitReport()">🔒 加密並儲存紀錄</button>
-                <button class="btn-primary" onclick="resetApp()">返回重新搜尋</button>
+            <div class="identity-switch">
+                <button id="btn-report-tenant" class="active" onclick="setReportType('tenant')">新增一般房客</button>
+                <button id="btn-report-student" onclick="setReportType('student')">新增學生房客</button>
+                <button id="btn-report-landlord" onclick="setReportType('landlord')">新增房東紀錄</button>
             </div>
-        </section>
 
-        <footer>
-            <p class="legal-text">去識別化流水編號 | 數據來源：司法院公開判決書</p>
-        </footer>
+            <div class="input-group">
+                <label>對象生活圈 <span class="required">*</span></label>
+                <select id="report-area" required>
+                    <option value="" disabled selected>請選擇對象生活圈</option>
+                    <option value="AREA_PCDV">新北核心 (板橋/中永和/土城/三重/蘆洲)</option>
+                    <option value="AREA_TPDV">台北核心 (中正/大安/萬華/文山/新店)</option>
+                    <option value="AREA_SLDV">台北北區 (士林/北投/內湖/南港)</option>
+                    <option value="AREA_TYDV">桃園/中壢生活圈</option>
+                    <option value="AREA_JCDV">新竹/竹北生活圈</option>
+                    <option value="AREA_TCDV">台中核心生活圈</option>
+                    <option value="AREA_TNDV">台南核心生活圈</option>
+                    <option value="AREA_KSDV">高雄核心生活圈</option>
+                    <option value="AREA_EADV">宜花東生活圈 (宜蘭/花蓮/台東)</option>
+                    <option value="AREA_ISDV">外島/離島生活圈 (澎湖/金門/馬祖)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label id="lbl-name">對象姓名 <span class="required">*</span></label>
+                <input type="text" id="report-name" placeholder="請輸入真實姓名" required>
+            </div>
+
+            <div class="input-group">
+                <label id="lbl-age">對象目測年齡 <span class="required">*</span></label>
+                <select id="report-age" required>
+                    <option value="" disabled selected>請選擇年齡區間</option>
+                    <option value="AGE_20">20 - 30 歲</option>
+                    <option value="AGE_30">31 - 40 歲</option>
+                    <option value="AGE_40">41 - 50 歲</option>
+                    <option value="AGE_50">51 歲以上</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label id="lbl-phone">電話末四碼 <span class="required">*</span></label>
+                <input type="tel" id="report-phone" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
+                    placeholder="例如: 5678" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);" required>
+            </div>
+
+            <div id="fields-tenant" class="dynamic-fields">
+                <div class="input-group">
+                    <label>承租標的型態 <span class="required">*</span></label>
+                    <select id="report-tenant-target">
+                        <option value="" disabled selected>請選擇承租型態</option>
+                        <option value="住宅">一般住宅 (套雅房/整層)</option>
+                        <option value="店面">營業用店面</option>
+                        <option value="商辦">辦公室/廠房</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>每月租金級距 <span class="required">*</span></label>
+                    <select id="report-tenant-rent">
+                        <option value="" disabled selected>請選擇租金級距</option>
+                        <option value="1W內">1 萬元以內</option>
+                        <option value="1W-3W">1萬 ~ 3萬元</option>
+                        <option value="3W以上">3 萬元以上</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="fields-landlord" class="dynamic-fields" style="display: none;">
+                <div class="input-group">
+                    <label>出租人屬性 <span class="required">*</span></label>
+                    <select id="report-landlord-type">
+                        <option value="" disabled selected>請選擇出租人屬性</option>
+                        <option value="屋主">屋主本人</option>
+                        <option value="二房東">二房東 (轉租)</option>
+                        <option value="代管">包租代管業者</option>
+                        <option value="仲介">一般仲介代理</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>主要出租型態 <span class="required">*</span></label>
+                    <select id="report-landlord-target">
+                        <option value="" disabled selected>請選擇出租型態</option>
+                        <option value="獨立套房">獨立套房</option>
+                        <option value="分租套雅房">分租套房/雅房</option>
+                        <option value="整層住家">整層住家</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>事件發生年份 <span class="required">*</span></label>
+                <select id="report-year" required>
+                    <option value="" disabled selected>請選擇發生年份</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>履約行為特徵 (可複選)</label>
+                <div id="tag-container" class="tag-selector-grid">
+                </div>
+            </div>
+
+            <div class="input-group agreement-box">
+                <label class="agreement-label">
+                    <input type="checkbox" id="report-agreement" class="agreement-checkbox" required>
+                    <span><strong>法律免責切結：</strong>本人切結以上回報皆屬客觀事實，且本人握有相關租約、對話或毀損照片等客觀證據。若遇司法調查，本人願自負相關法律責任，與本平台無涉。</span>
+                </label>
+            </div>
+
+            <button class="btn-submit-yellow" onclick="submitReport()">🔒 加密並儲存紀錄</button>
+            <button class="btn-primary" onclick="resetApp()">返回重新搜尋</button>
+        </div>
+    </section>
+
+    <footer>
+        <p class="legal-text">去識別化流水編號 | 數據來源：司法院公開判決書</p>
+    </footer>
     </div>
     <script src="app.js"></script>
 </body>
