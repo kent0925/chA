@@ -70,8 +70,6 @@
             <div class="result-header">
                 <div class="score-container">
                     <div class="score-label">⚖️ 資料庫比對狀態</div>
-                    <div class="status-tag text-green status-tag-hero">
-                        比對中...</div>
 
                     <!-- 風險滑軌（區段式光譜） -->
                     <div id="risk-spectrum" class="risk-spectrum">
@@ -90,17 +88,10 @@
                         </div>
                     </div>
 
-                </div>
-            </div>
+                    <!-- 風險建議文字（由 JS 動態填入） -->
+                    <div id="risk-advice" class="risk-advice"></div>
 
-            <div class="result-card court-data border-green">
-                <div class="card-tag">🏛️ 官方法院數據</div>
-                <div class="summary">
-                    <a id="res-court-link" href="#" target="_blank" rel="noopener noreferrer"
-                        style="color: #3498db; word-break: break-all; display: none;"></a>
-                    <span id="res-court-empty">查無相關法院判決紀錄</span>
                 </div>
-                <div class="tag-row"></div>
             </div>
 
             <div class="result-card user-data border-green" style="display: none;">

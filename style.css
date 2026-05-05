@@ -375,6 +375,20 @@ button {
     letter-spacing: 0.5px;
 }
 
+/* 滑軌下方風險建議文字 */
+.risk-advice {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #ccc;
+    line-height: 1.5;
+    min-height: 20px;
+}
+
 .result-card {
     margin-bottom: 15px;
     padding: 15px;
