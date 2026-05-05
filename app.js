@@ -9,22 +9,40 @@ const GAS_API_URL = "YOUR_GAS_WEB_APP_URL_HERE";
 async function callGAS(payload) {
     if (!GAS_API_URL || GAS_API_URL === "YOUR_GAS_WEB_APP_URL_HERE") {
         console.warn("⚠️ GAS_API_URL 尚未配置，使用 Demo 模式");
-        return null; // 回傳 null 表示未連線
+        return null; 
     }
-    const resp = await fetch(GAS_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    return await resp.json();
+
+    // 建立逾時控制 (10秒)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    try {
+        const resp = await fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return await resp.json();
+    } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+            throw new Error('連線逾時，請檢查網路狀態');
+        }
+        throw err;
+    }
 }
 
 // 🌟 新增：全域使用者身分狀態
 let currentUser = {
     uid: 'GUEST_DEFAULT',
     platform: 'WEB',
-    quota: 0 // 預設 0 次
+    quota: 0,
+    displayName: '訪客測試',
+    pictureUrl: '',
+    personalCount: 0
 };
 
 // --- 1. 安全模組：加鹽雜湊 (SHA-256) ---
@@ -43,35 +61,79 @@ async function initializeAuth() {
         // 偵測 A：Telegram (每日 1 次)
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
             const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-            currentUser = { uid: `TG_${tgUser.id}`, platform: 'TELEGRAM', quota: 1 };
-            console.log("🛡️ Telegram 模式：每日 1 次查詢額度");
+            currentUser = { 
+                uid: `TG_${tgUser.id}`, 
+                platform: 'TELEGRAM', 
+                quota: 1,
+                displayName: tgUser.first_name || 'TG User',
+                pictureUrl: tgUser.photo_url || ''
+            };
+            console.log("🛡️ Telegram 模式");
+            updateUserInfoUI();
             return;
         }
 
         // 偵測 B：LINE (每日 3 次)
         if (window.liff) {
-            // LIFF_ID 從後端指令碼屬性取得，透過 initializeAuth 參數傳入
             const liffId = currentUser._liffId || '';
-            if (!liffId) {
-                console.warn("⚠️ LIFF ID 尚未從後端取得，LINE 登入功能無法運作");
-            } else {
+            if (liffId) {
                 await liff.init({ liffId: liffId });
                 if (liff.isLoggedIn()) {
                     const profile = await liff.getProfile();
-                    currentUser = { uid: `LINE_${profile.userId}`, platform: 'LINE', quota: 3 };
-                    console.log("🛡️ LINE 模式：每日 3 次查詢額度");
+                    currentUser = { 
+                        uid: `LINE_${profile.userId}`, 
+                        platform: 'LINE', 
+                        quota: 3,
+                        displayName: profile.displayName,
+                        pictureUrl: profile.pictureUrl
+                    };
+                    console.log("🛡️ LINE 模式");
+                    updateUserInfoUI();
                     return;
                 }
             }
         }
 
-        // 偵測 C：網頁訪客 (試用版 - 僅能看 Demo)
-        currentUser = { uid: 'TRIAL_USER', platform: 'WEB', quota: 0 };
-        console.log("🛑 訪客模式：啟動試用版引流邏輯");
+        // 偵測 C：網頁訪客 (試用版)
+        currentUser = { uid: 'TRIAL_USER', platform: 'WEB', quota: 0, displayName: '訪客測試 (WEB)', pictureUrl: '' };
+        console.log("🛑 訪客模式");
+        updateUserInfoUI();
 
     } catch (error) {
-        currentUser = { uid: 'TRIAL_USER', platform: 'WEB', quota: 0 };
+        console.error("Auth Init Error:", error);
+        updateUserInfoUI();
     }
+}
+
+// 🌟 新增：更新介面使用者資訊
+function updateUserInfoUI() {
+    const userBar = document.getElementById('user-bar');
+    const avatarImg = document.getElementById('user-avatar');
+    const nameSpan = document.getElementById('user-name');
+    const quotaSpan = document.getElementById('user-quota');
+
+    if (!userBar) return;
+
+    userBar.classList.remove('hidden');
+    nameSpan.innerText = currentUser.displayName;
+    
+    if (currentUser.pictureUrl) {
+        avatarImg.src = currentUser.pictureUrl;
+    } else {
+        avatarImg.src = "https://www.w3schools.com/howto/img_avatar.png"; 
+    }
+
+    let pCount = currentUser.personalCount || 0;
+    let platformText = "";
+    if (currentUser.platform === 'LINE') {
+        platformText = "⭐ LINE 認證用戶";
+    } else if (currentUser.platform === 'TELEGRAM') {
+        platformText = "🔹 Telegram 用戶";
+    } else {
+        platformText = "☁️ 網頁試用模式";
+    }
+
+    quotaSpan.innerText = `${platformText} | 您已貢獻 ${pCount} 筆紀錄`;
 }
 
 // --- 2. 視圖切換管理 ---
@@ -191,7 +253,7 @@ async function handleSearch() {
         switchView('view-results');
     } catch (err) {
         console.error('搜尋 API 呼叫失敗:', err);
-        alert('連線異常，請稍後再試');
+        showToast(`❌ 查詢失敗: ${err.message}`, 'danger');
         switchView('view-search');
     }
 }
@@ -396,17 +458,35 @@ async function submitReport() {
         resetApp();
     } catch (err) {
         console.error('回報 API 呼叫失敗:', err);
-        alert('連線異常，請稍後再試');
+        showToast(`❌ 連線異常: ${err.message}`, 'danger');
         switchView('view-report');
     }
+}
+
+// 🌟 新增：吐司訊息 (Toast Notification)
+function showToast(message, type = 'info') {
+    let toast = document.getElementById('ui-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'ui-toast';
+        toast.className = 'ui-toast';
+        document.body.appendChild(toast);
+    }
+    
+    toast.innerText = message;
+    toast.className = `ui-toast show ${type}`;
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3500);
 }
 
 // --- 7. 通用輔助函式 ---
 
 /** 開啟回報視圖 */
 function openReportView() {
-    if (currentUser.platform === 'WEB' || currentUser.uid === 'BLOCKED') {
-        alert("🔒 安全驗證要求：\n請使用 LINE 開啟本系統，以解鎖建立履約紀錄建檔之權限。");
+    if (currentUser.uid === 'BLOCKED') {
+        alert("🔒 權限限制：\n您的帳號已被停權，無法使用建檔功能。");
         return;
     }
     if (currentUser.platform === 'TELEGRAM') {
@@ -467,12 +547,20 @@ function openTakedownForm() {
 
 // --- 8. 即時數據儀表板更新 ---
 async function updateLiveStats() {
-    const fallback = { userCount: 1204 };
+    const fallback = { userCount: 1204, personalCount: 0 };
     try {
-        const result = await callGAS({ action: "stats" });
+        const result = await callGAS({ 
+            action: "stats",
+            uid: currentUser.uid
+        });
         const data = (result && result.status === 'ok') ? result : fallback;
         const stUser = document.getElementById('stat-user-num');
         if (stUser) stUser.innerText = (data.userCount || 0).toLocaleString();
+        
+        // 更新全域使用者狀態中的筆數
+        currentUser.personalCount = data.personalCount || 0;
+        updateUserInfoUI();
+
         console.log("📊 儀表板數據已同步更新");
     } catch (error) {
         console.error("無法更新儀表板數據:", error);
@@ -503,18 +591,7 @@ function generateYearOptions() {
     yearSelect.add(new Option(`${twYear - 4}年以前`, `${twYear - 4}以前`));
 }
 
-// --- 輔助函式：將 Source_JID 轉換為標準裁判字號 ---
-function formatJID(sourceJID) {
-    if (!sourceJID) return "查看法院公開判決"; // 若無資料的備用文字
-
-    const parts = sourceJID.split(',');
-    // 確認字串有用逗號隔開，且長度足夠 (SJEV, 108, 重建簡, 39...)
-    if (parts.length >= 4) {
-        // 取出對應的欄位並組合
-        return `${parts[1]}年度${parts[2]}字第${parts[3]}號`;
-    }
-    return sourceJID; // 若格式不符，直接印出原值
-}
+// （已移除 formatJID 函式）
 
 // --- 9. 初始化 ---
 window.onload = async () => {

@@ -60,6 +60,56 @@ header p {
 }
 
 /* ============================================================
+   使用者資訊列 (Premium Design)
+   ============================================================ */
+.user-bar {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 12px 18px;
+    border-radius: 16px;
+    margin: 15px 0;
+    border: 1px solid rgba(0, 80, 136, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    gap: 15px;
+    transition: transform 0.2s ease;
+}
+
+.user-bar:hover {
+    transform: translateY(-2px);
+}
+
+.user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #eee, #ddd);
+    border: 2px solid white;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    object-fit: cover;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.user-quota {
+    font-size: 11px;
+    font-weight: 500;
+    color: #7f8c8d;
+    letter-spacing: 0.3px;
+}
+
+/* ============================================================
    統計儀表板
    ============================================================ */
 .stats-dashboard {
@@ -75,10 +125,6 @@ header p {
     text-align: center;
     background: white;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
-}
-
-.official-stat {
-    border-bottom: 4px solid var(--primary);
 }
 
 .user-stat {
@@ -381,12 +427,12 @@ button {
     font-size: 14px;
     font-weight: 600;
     margin-top: 12px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.06);
-    color: #ccc;
-    line-height: 1.5;
-    min-height: 20px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    background: rgba(0, 80, 136, 0.05);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 24px;
 }
 
 .result-card {
@@ -396,9 +442,7 @@ button {
     border-left: 5px solid #eee;
 }
 
-.court-data {
-    background: #eef7ff;
-}
+/* （已移除 .court-data 樣式） */
 
 .user-data {
     background: #fffcf0;
@@ -471,31 +515,7 @@ button {
     border: 1px solid transparent;
 }
 
-/* 舊版 data-type 屬性選擇器（相容既有 HTML） */
-.ui-tag[data-type="high-risk"],
-.ui-tag.high-risk {
-    background: #fdedec;
-    color: var(--level-red);
-    border-color: #fadbd8;
-}
-
-.ui-tag[data-type="damage"] {
-    background: #fef5e7;
-    color: var(--level-orange);
-    border-color: #fbeee6;
-}
-
-.ui-tag[data-type="env"] {
-    background: #fcf3cf;
-    color: var(--level-yellow);
-    border-color: #f9e79f;
-}
-
-.ui-tag[data-type="angel"] {
-    background: #eafaf1;
-    color: var(--level-green);
-    border-color: #d4efdf;
-}
+/* 已整合至 .tag-chip 與 .user-tag */
 
 /* 民間標籤（中性色） */
 .ui-tag.user-tag {
@@ -661,11 +681,7 @@ button {
     margin-top: 8px;
 }
 
-/* 結果頁：回報筆數標題 */
-.res-user-title {
-    margin: 5px 0 10px;
-    font-size: 14px;
-}
+/* （已移除 .res-user-title） */
 
 /* ============================================================
    免責聲明 & 申訴區塊（從行內樣式移入）
@@ -724,30 +740,36 @@ button {
 }
 
 /* ============================================================
-   動態浮水印（結果頁疊層）
+   吐司訊息 (Toast Notification)
    ============================================================ */
-.watermark-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.watermark-text {
-    position: absolute;
-    white-space: nowrap;
+.ui-toast {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
     font-size: 14px;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.06);
-    transform: rotate(-25deg);
-    user-select: none;
-    letter-spacing: 2px;
+    font-weight: 500;
+    z-index: 9999;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    white-space: nowrap;
 }
 
+.ui-toast.show {
+    bottom: 30px;
+}
+
+.ui-toast.danger {
+    background: var(--danger);
+}
+
+.ui-toast.success {
+    background: var(--level-green);
+}
 /* 結果頁需要 relative 定位供浮水印參照 */
 #view-results {
     position: relative;
@@ -809,4 +831,29 @@ button {
 
 .border-corr-high {
     border-left-color: #2196f3 !important;
+}
+
+/* ============================================================
+   動態浮水印（結果頁疊層）
+   ============================================================ */
+.watermark-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.watermark-text {
+    position: absolute;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.06);
+    transform: rotate(-25deg);
+    user-select: none;
+    letter-spacing: 2px;
 }
