@@ -1,6 +1,25 @@
 // --- 0. 核心安全配置 ---
 const SYSTEM_SALT = "TrU$t_Sca1e_8xP@qL9!mZ";
 
+// 🔗 GAS Web App 部署 URL（部署後請替換為實際 URL）
+// 這是前端唯一需要硬編碼的設定值，其他設定皆存放於 GAS 指令碼屬性
+const GAS_API_URL = "YOUR_GAS_WEB_APP_URL_HERE";
+
+// --- 0.5 通用 API 呼叫函式 ---
+async function callGAS(payload) {
+    if (!GAS_API_URL || GAS_API_URL === "YOUR_GAS_WEB_APP_URL_HERE") {
+        console.warn("⚠️ GAS_API_URL 尚未配置，使用 Demo 模式");
+        return null; // 回傳 null 表示未連線
+    }
+    const resp = await fetch(GAS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+}
+
 // 🌟 新增：全域使用者身分狀態
 let currentUser = {
     uid: 'GUEST_DEFAULT',
@@ -31,12 +50,18 @@ async function initializeAuth() {
 
         // 偵測 B：LINE (每日 3 次)
         if (window.liff) {
-            await liff.init({ liffId: "YOUR_LIFF_ID_HERE" });
-            if (liff.isLoggedIn()) {
-                const profile = await liff.getProfile();
-                currentUser = { uid: `LINE_${profile.userId}`, platform: 'LINE', quota: 3 };
-                console.log("🛡️ LINE 模式：每日 3 次查詢額度");
-                return;
+            // LIFF_ID 從後端指令碼屬性取得，透過 initializeAuth 參數傳入
+            const liffId = currentUser._liffId || '';
+            if (!liffId) {
+                console.warn("⚠️ LIFF ID 尚未從後端取得，LINE 登入功能無法運作");
+            } else {
+                await liff.init({ liffId: liffId });
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    currentUser = { uid: `LINE_${profile.userId}`, platform: 'LINE', quota: 3 };
+                    console.log("🛡️ LINE 模式：每日 3 次查詢額度");
+                    return;
+                }
             }
         }
 
@@ -144,18 +169,31 @@ async function handleSearch() {
         action: "search",
         uid: currentUser.uid,
         platform: currentUser.platform,
-        limit: currentUser.quota,
         hName,
         hPhone,
-        ageRange // area 欄位已從搜尋頁移除，不再傳送
+        ageRange
     };
 
     console.log("🚀 [搜尋 Payload]:", payload);
 
-    setTimeout(() => {
-        updateResultsUI(95);
+    try {
+        const result = await callGAS(payload);
+        if (result === null) {
+            // GAS 未配置 → Demo fallback
+            updateResultsUI(95);
+        } else if (result.status === 'ok') {
+            updateResultsUI(result);
+        } else {
+            alert(result.message || '查詢失敗，請稍後再試');
+            switchView('view-search');
+            return;
+        }
         switchView('view-results');
-    }, 1500);
+    } catch (err) {
+        console.error('搜尋 API 呼叫失敗:', err);
+        alert('連線異常，請稍後再試');
+        switchView('view-search');
+    }
 }
 
 // --- 5. 結果渲染引擎 (前端完全無分數版) ---
@@ -167,12 +205,12 @@ function updateResultsUI(input) {
 
     // ── 模式判斷 ──
     if (typeof input === 'number') {
-        // 【Demo 測試模式】: 這邊的數字是我們寫死在前端測試用的，不會產生真實的封包外洩資安問題
+        // 【Demo 測試模式】: 閾值對齊後端 CIO 方案
         const R = input;
-        let cfg = { color: 'green', text: '🟢 查無顯著關聯紀錄' };
-        if (R > 80) cfg = { color: 'red', text: '🔴 具備密集關聯紀錄' };
-        else if (R > 50) cfg = { color: 'orange', text: '🟠 具備多項關聯紀錄' };
-        else if (R > 20) cfg = { color: 'yellow', text: '🟡 具備少數關聯紀錄' };
+        let cfg = { color: 'green', text: '🟢 金級對象：信譽優良，建議優先成交' };
+        if (R > 80) cfg = { color: 'red', text: '🔴 地雷警示：極不建議交易' };
+        else if (R > 50) cfg = { color: 'orange', text: '🟠 高危對象：建議審慎評估' };
+        else if (R > 20) cfg = { color: 'yellow', text: '🟡 注意對象：建議加強合約' };
 
         if (statusTag) {
             statusTag.innerText = cfg.text;
@@ -187,7 +225,7 @@ function updateResultsUI(input) {
             if (courtLink) {
                 courtLink.href = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
                 courtLink.innerText = '108年度重建簡字第39號'; // 示意字號
-                courtLink.style.wordBreak = 'normal'; // 取消網址強制換行，讓字號完整顯示
+                courtLink.style.wordBreak = 'normal';
                 courtLink.style.display = 'block';
                 courtLink.setAttribute('rel', 'noopener noreferrer');
             }
@@ -211,20 +249,18 @@ function updateResultsUI(input) {
         }
 
     } else {
-        // 【正式連線模式】: 與 GAS 後端對接
-        // 💡 關鍵升級：前端不再接收 "score"，而是接收後端判定好的抽象代號 "riskLevel"
+        // 【正式連線模式】: 前端僅輸出「風險燈號」+「幽默風險提示」，不含任何評分邏輯
         const { riskLevel, courtInfo, userInfo } = input;
 
         let cfg;
-        // 前端徹底淪為只負責顯示外觀的「笨蛋(Dumb UI)」，不含任何評分計算邏輯
         if (riskLevel === 'HIGH') {
-            cfg = { color: 'red', text: '🔴 具備密集關聯紀錄' };
+            cfg = { color: 'red', text: '🔴 地雷警示：極不建議交易' };
         } else if (riskLevel === 'MEDIUM') {
-            cfg = { color: 'orange', text: '🟠 具備多項關聯紀錄' };
+            cfg = { color: 'orange', text: '🟠 高危對象：建議審慎評估' };
         } else if (riskLevel === 'LOW') {
-            cfg = { color: 'yellow', text: '🟡 具備少數關聯紀錄' };
+            cfg = { color: 'yellow', text: '🟡 注意對象：建議加強合約' };
         } else {
-            cfg = { color: 'green', text: '🟢 查無顯著關聯紀錄' };
+            cfg = { color: 'green', text: '🟢 金級對象：信譽優良，建議優先成交' };
         }
 
         if (statusTag) {
@@ -234,8 +270,8 @@ function updateResultsUI(input) {
         if (courtCard) courtCard.className = `result-card court-data border-${cfg.color}`;
         if (userCard) userCard.className = `result-card user-data border-${cfg.color}`;
 
-        const courtTitle = courtCard ? courtCard.querySelector('h3') : null;
-        if (courtTitle) courtTitle.style.display = 'none';
+        // 注意：court-data 卡片沒有 h3，使用 .card-tag 作為標題選擇器
+        const courtCardTag = courtCard ? courtCard.querySelector('.card-tag') : null;
 
         const courtSummary = courtCard ? courtCard.querySelector('.summary') : null;
         if (courtSummary) {
@@ -282,18 +318,7 @@ function updateResultsUI(input) {
     }
 }
 
-function renderResultTags(containerId, tags, cssClass) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
-    if (!tags || tags.length === 0) return;
-    tags.forEach(tagText => {
-        const span = document.createElement('span');
-        span.className = `ui-tag ${cssClass}`;
-        span.innerText = tagText;
-        container.appendChild(span);
-    });
-}
+
 
 // --- 6. 回報系統邏輯 ---
 // --- 輔助函式：切換回報身分 ---
@@ -323,9 +348,7 @@ function setReportType(type) {
 
     // 4. 重置並重新渲染光譜標籤
     selectedTags.clear(); // 清空已選標籤
-    if (typeof renderTags === 'function') {
-        renderTags(type); // 呼叫你寫好的渲染函式，印出對應字典
-    }
+    renderTags(); // 重新渲染標籤（renderTags 自動讀取 currentReportType）
 }
 
 // --- 渲染特徵標籤 (中立合併版) ---
@@ -372,12 +395,13 @@ async function submitReport() {
     if (selectedTags.size === 0) return alert("請至少選擇一個特徵標籤");
 
     let specificData = {};
-    if (currentReportType === 'tenant') {
+    if (currentReportType === 'tenant' || currentReportType === 'student') {
+        // 房客與學生共用「承租型態與租金」欄位
         const tTarget = document.getElementById('report-tenant-target');
         const tRent = document.getElementById('report-tenant-rent');
         if (!tTarget.value || !tRent.value) return alert("請選擇承租型態與租金級距");
         specificData = { target: tTarget.value, rentLevel: tRent.value };
-    } else {
+    } else if (currentReportType === 'landlord') {
         const lType = document.getElementById('report-landlord-type');
         const lTarget = document.getElementById('report-landlord-target');
         if (!lType.value || !lTarget.value) return alert("請選擇出租人屬性與出租型態");
@@ -406,10 +430,24 @@ async function submitReport() {
 
     console.log("🚀 [回報 Payload]:", payload);
 
-    setTimeout(() => {
-        alert("✅ 紀錄已完成單向加密建檔。原始輸入資訊已於本地端清除。");
+    try {
+        const result = await callGAS(payload);
+        if (result === null) {
+            // GAS 未配置 → Demo fallback
+            alert("✅ [Demo] 紀錄已完成單向加密建檔。原始輸入資訊已於本地端清除。");
+        } else if (result.status === 'ok') {
+            alert("✅ " + (result.message || "紀錄已完成單向加密建檔。"));
+        } else {
+            alert("❌ " + (result.message || "回報失敗，請稍後再試"));
+            switchView('view-report');
+            return;
+        }
         resetApp();
-    }, 1200);
+    } catch (err) {
+        console.error('回報 API 呼叫失敗:', err);
+        alert('連線異常，請稍後再試');
+        switchView('view-report');
+    }
 }
 
 // --- 7. 通用輔助函式 ---
@@ -478,18 +516,23 @@ function openTakedownForm() {
 
 // --- 8. 即時數據儀表板更新 ---
 async function updateLiveStats() {
+    // Demo 預設值（當 GAS 未配置時使用）
+    const fallback = { courtCount: 5012345, userCount: 1204 };
     try {
-        const simulatedData = {
-            courtCount: 5012345,
-            userCount: 1204
-        };
+        const result = await callGAS({ action: "stats" });
+        const data = (result && result.status === 'ok') ? result : fallback;
         const stCourt = document.getElementById('stat-court-num');
         const stUser = document.getElementById('stat-user-num');
-        if (stCourt) stCourt.innerText = simulatedData.courtCount.toLocaleString();
-        if (stUser) stUser.innerText = simulatedData.userCount.toLocaleString();
+        if (stCourt) stCourt.innerText = (data.courtCount || 0).toLocaleString();
+        if (stUser) stUser.innerText = (data.userCount || 0).toLocaleString();
         console.log("📊 儀表板數據已同步更新");
     } catch (error) {
         console.error("無法更新儀表板數據:", error);
+        // 失敗時使用 fallback
+        const stCourt = document.getElementById('stat-court-num');
+        const stUser = document.getElementById('stat-user-num');
+        if (stCourt) stCourt.innerText = fallback.courtCount.toLocaleString();
+        if (stUser) stUser.innerText = fallback.userCount.toLocaleString();
     }
 }
 
@@ -530,8 +573,19 @@ function formatJID(sourceJID) {
 
 // --- 9. 初始化 ---
 window.onload = async () => {
+    // 先從後端取得設定值（LIFF_ID 等）
+    try {
+        const config = await callGAS({ action: 'config' });
+        if (config && config.status === 'ok') {
+            currentUser._liffId = config.liffId || '';
+            console.log('🔧 後端設定已載入');
+        }
+    } catch (err) {
+        console.warn('⚠️ 無法取得後端設定，使用預設值:', err.message);
+    }
+
     await initializeAuth();
-    generateYearOptions(); // 🌟 呼叫動態年份生成
+    generateYearOptions();
     switchView('view-search');
     renderTags();
     updateLiveStats();

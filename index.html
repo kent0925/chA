@@ -48,9 +48,9 @@
 
                 <div class="input-group">
                     <label for="in-phone">電話末四碼 (選填)</label>
-                    <input type="number" id="in-phone" inputmode="numeric" pattern="[0-9]*" min="0"
+                    <input type="tel" id="in-phone" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
                         placeholder="請輸入 4 位數字"
-                        oninput="if(this.value.length>4)this.value=this.value.slice(0,4); if(this.value<0)this.value=0;">
+                        oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);">
                 </div>
 
                 <button class="btn-primary" onclick="handleSearch()">🔍 查詢履約紀錄</button>
@@ -71,7 +71,7 @@
             <div class="result-header">
                 <div class="score-container">
                     <div class="score-label">⚖️ 資料庫比對狀態</div>
-                    <div class="status-tag text-green" style="font-size: 22px; font-weight: bold; margin-top: 8px;">
+                    <div class="status-tag text-green status-tag-hero">
                         比對中...</div>
                 </div>
             </div>
@@ -88,18 +88,17 @@
 
             <div class="result-card user-data border-green" style="display: none;">
                 <div class="card-tag">👤 平台建檔紀錄</div>
-                <h3 id="res-user-title" style="margin: 5px 0 10px; font-size: 14px;">共 0 筆回報</h3>
+                <h3 id="res-user-title" class="res-user-title">共 0 筆回報</h3>
                 <div id="res-user-tags" class="tag-row"></div>
             </div>
 
             <div class="legal-footer" style="display: none;">
-                <div class="takedown-box" style="margin-bottom: 15px; text-align: center;">
-                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 8px;">對以上資訊有異議？</p>
+                <div class="takedown-box">
+                    <p>對以上資訊有異議？</p>
                     <button class="btn-small-outline" onclick="openTakedownForm()">📋 申請資料查核</button>
                 </div>
 
-                <div class="disclaimer"
-                    style="padding: 12px; background: rgba(255,255,255,0.05); border-left: 3px solid #666; font-size: 0.85rem; color: #888; text-align: left; line-height: 1.5;">
+                <div class="disclaimer">
                     ⚠️ <b>系統免責與風險聲明：</b><br>
                     1. 本系統採用單向去識別化雜湊（Hash）技術比對，不留存明文個資。<br>
                     2. <b>資料庫檢索可能因當事人「同名同姓」或「合法改名」而產生關聯誤差。</b><br>
@@ -155,9 +154,9 @@
 
                 <div class="input-group">
                     <label id="lbl-phone">電話末四碼 <span class="required">*</span></label>
-                    <input type="number" id="report-phone" inputmode="numeric" pattern="[0-9]*" min="0"
+                    <input type="tel" id="report-phone" inputmode="numeric" pattern="[0-9]{4}" maxlength="4"
                         placeholder="例如: 5678"
-                        oninput="if(this.value.length>4)this.value=this.value.slice(0,4); if(this.value<0)this.value=0;"
+                        oninput="this.value=this.value.replace(/\D/g,'').slice(0,4);"
                         required>
                 </div>
 
@@ -217,12 +216,9 @@
                     </div>
                 </div>
 
-                <div class="input-group checkbox-group"
-                    style="margin-top: 15px; padding: 10px; background-color: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
-                    <label
-                        style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 13px; color: #555; line-height: 1.5; font-weight: normal;">
-                        <input type="checkbox" id="report-agreement" required
-                            style="margin-top: 3px; transform: scale(1.2);">
+                <div class="input-group agreement-box">
+                    <label class="agreement-label">
+                        <input type="checkbox" id="report-agreement" class="agreement-checkbox" required>
                         <span><strong>法律免責切結：</strong>本人切結以上回報皆屬客觀事實，且本人握有相關租約、對話或毀損照片等客觀證據。若遇司法調查，本人願自負相關法律責任，與本平台無涉。</span>
                     </label>
                 </div>
