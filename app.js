@@ -196,64 +196,46 @@ async function handleSearch() {
     }
 }
 
-// --- 5. 結果渲染引擎 (前端完全無分數版) ---
+// --- 5. 結果渲染引擎 ---
 function updateResultsUI(input) {
-    const statusTag = document.querySelector('.status-tag');
-    const courtCard = document.querySelector('.court-data');
+    const adviceEl = document.getElementById('risk-advice');
     const userCard = document.querySelector('.user-data');
     const legalFooter = document.querySelector('.legal-footer');
 
     // ── 模式判斷 ──
     if (typeof input === 'number') {
-        // 【Demo 測試模式】: 閾值對齊後端 CIO 方案
+        // 【Demo 測試模式】
         const R = input;
         let cfg = { color: 'green', text: '建議依一般流程作業，視需要優化條件' };
         if (R > 80) cfg = { color: 'red', text: '建議強化風險控管或評估承租必要性' };
         else if (R > 50) cfg = { color: 'orange', text: '建議補強第三方擔保或查驗佐證資料' };
         else if (R > 20) cfg = { color: 'yellow', text: '建議依標準程序查核，並落實約定事項' };
 
-        // 更新滑軌指標位置
+        // 更新滑軌指標
         const riskKey = R > 80 ? 'HIGH' : R > 50 ? 'MEDIUM' : R > 20 ? 'LOW' : 'NONE';
         updateSpectrum(riskKey);
 
-        if (statusTag) {
-            statusTag.innerText = cfg.text;
-            statusTag.className = 'status-tag text-' + cfg.color;
-        }
-        if (courtCard) courtCard.className = 'result-card court-data border-' + cfg.color;
+        // 建議文字
+        if (adviceEl) adviceEl.innerText = cfg.text;
+
+        // 卡片邊框色
         if (userCard) userCard.className = 'result-card user-data border-' + cfg.color;
 
+        // Demo：模擬有回報紀錄
         if (R > 80) {
-            const courtLink = document.getElementById('res-court-link');
-            const courtEmpty = document.getElementById('res-court-empty');
-            if (courtLink) {
-                courtLink.href = 'https://judgment.judicial.gov.tw/FJUD/default.aspx';
-                courtLink.innerText = '108年度重建簡字第39號'; // 示意字號
-                courtLink.style.wordBreak = 'normal';
-                courtLink.style.display = 'block';
-                courtLink.setAttribute('rel', 'noopener noreferrer');
-            }
-            if (courtEmpty) courtEmpty.style.display = 'none';
-
             if (userCard) userCard.style.display = 'block';
             const userTitle = document.getElementById('res-user-title');
             if (userTitle) userTitle.innerText = '共 1 筆回報';
             const userTagsRow = document.getElementById('res-user-tags');
             if (userTagsRow) userTagsRow.innerHTML = `<span class="ui-tag user-tag">📦 雜物領主</span>`;
-
             if (legalFooter) legalFooter.style.display = 'block';
         } else {
-            const courtLink = document.getElementById('res-court-link');
-            const courtEmpty = document.getElementById('res-court-empty');
-            if (courtLink) courtLink.style.display = 'none';
-            if (courtEmpty) courtEmpty.style.display = 'block';
-
             if (userCard) userCard.style.display = 'none';
             if (legalFooter) legalFooter.style.display = 'none';
         }
 
     } else {
-        // 【正式連線模式】: 前端僅輸出「風險燈號」+「幽默風險提示」，不含任何評分邏輯
+        // 【正式連線模式】
         const { riskLevel, courtInfo, userInfo } = input;
 
         let cfg;
@@ -267,34 +249,16 @@ function updateResultsUI(input) {
             cfg = { color: 'green', text: '建議依一般流程作業，視需要優化條件' };
         }
 
-        // 更新滑軌指標位置
+        // 更新滑軌指標
         updateSpectrum(riskLevel || 'NONE');
 
-        if (statusTag) {
-            statusTag.className = `status-tag text-${cfg.color}`;
-            statusTag.innerText = cfg.text;
-        }
-        if (courtCard) courtCard.className = `result-card court-data border-${cfg.color}`;
+        // 建議文字
+        if (adviceEl) adviceEl.innerText = cfg.text;
+
+        // 卡片邊框色
         if (userCard) userCard.className = `result-card user-data border-${cfg.color}`;
 
-        // 注意：court-data 卡片沒有 h3，使用 .card-tag 作為標題選擇器
-        const courtCardTag = courtCard ? courtCard.querySelector('.card-tag') : null;
-
-        const courtSummary = courtCard ? courtCard.querySelector('.summary') : null;
-        if (courtSummary) {
-            if (courtInfo && courtInfo.url) {
-                // 呼叫我們剛剛寫的輔助函式，把後端傳來的 sourceJID 轉成漂亮字號
-                const displayText = courtInfo.sourceJID ? formatJID(courtInfo.sourceJID) : '查看法院公開判決';
-
-                courtSummary.innerHTML = `<a href="${courtInfo.url}" target="_blank" rel="noopener noreferrer" style="color: #3498db; font-weight: bold; text-decoration: none;">${displayText}</a>`;
-            } else {
-                courtSummary.innerText = "查無相關公開判決";
-            }
-            courtSummary.style.display = 'block';
-        }
-        const courtTagRow = courtCard ? courtCard.querySelector('.tag-row') : null;
-        if (courtTagRow) courtTagRow.innerHTML = '';
-
+        // 平台建檔紀錄
         if (userInfo && userInfo.found) {
             if (userCard) userCard.style.display = 'block';
             const userTitle = userCard.querySelector('h3');
