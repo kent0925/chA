@@ -212,6 +212,10 @@ function updateResultsUI(input) {
         else if (R > 50) cfg = { color: 'orange', text: '🟠 數據中度關聯：建議補強第三方擔保或查驗佐證資料' };
         else if (R > 20) cfg = { color: 'yellow', text: '🟡 數據低度關聯：建議依標準程序查核，並落實約定事項' };
 
+        // 更新滑軌指標位置
+        const riskKey = R > 80 ? 'HIGH' : R > 50 ? 'MEDIUM' : R > 20 ? 'LOW' : 'NONE';
+        updateSpectrum(riskKey);
+
         if (statusTag) {
             statusTag.innerText = cfg.text;
             statusTag.className = 'status-tag text-' + cfg.color;
@@ -262,6 +266,9 @@ function updateResultsUI(input) {
         } else {
             cfg = { color: 'green', text: '未偵測異常關聯：建議依一般流程作業，視需要優化條件' };
         }
+
+        // 更新滑軌指標位置
+        updateSpectrum(riskLevel || 'NONE');
 
         if (statusTag) {
             statusTag.className = `status-tag text-${cfg.color}`;
@@ -318,6 +325,36 @@ function updateResultsUI(input) {
     }
 }
 
+// --- 5.5 風險滑軌更新 ---
+function updateSpectrum(riskKey) {
+    // 使用 rAF 延遲確保 DOM 已渲染可見（避免 hidden 狀態下 transition 不觸發）
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const pointer = document.getElementById('spectrum-pointer');
+            if (!pointer) return;
+
+            // 四段各佔 25%，指標停在該區段中央
+            const posMap = {
+                NONE: '12.5%',   // 綠區中央
+                LOW: '37.5%',    // 黃區中央
+                MEDIUM: '62.5%', // 橘區中央
+                HIGH: '87.5%'    // 紅區中央
+            };
+
+            // 對應區段索引（0=綠, 1=黃, 2=橘, 3=紅）
+            const segIndex = { NONE: 0, LOW: 1, MEDIUM: 2, HIGH: 3 };
+
+            // 移動指標
+            pointer.style.left = posMap[riskKey] || '12.5%';
+
+            // 高亮對應色塊，其餘淡化
+            const segs = document.querySelectorAll('.spectrum-seg');
+            segs.forEach((seg, i) => {
+                seg.classList.toggle('active', i === segIndex[riskKey]);
+            });
+        });
+    });
+}
 
 
 // --- 6. 回報系統邏輯 ---
