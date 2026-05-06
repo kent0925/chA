@@ -327,6 +327,7 @@ async function handleSearch() {
             return;
         }
         switchView('view-results');
+        updateLiveStats(); // 搜尋後也同步一次數據
     } catch (err) {
         console.error('搜尋 API 呼叫失敗:', err);
         showToast(`❌ 查詢失敗: ${err.message}`, 'danger');
@@ -354,9 +355,21 @@ function updateResultsUI(input) {
         // 建議文字
         if (adviceEl) adviceEl.innerText = text;
 
+        // 🌟 Demo 模式模擬標籤數據 (包含次數與衰退權重)
+        const demoTags = [
+            { text: "💰 準時給付租金", count: 3, weight: 1.0 },
+            { text: "✨ 屋況維持極佳", count: 2, weight: 0.9 },
+            { text: "💸 租金給付遲延", count: 1, weight: 0.3 }, // 歷史衰退標籤
+            { text: "🏚️ 設備毀損紀錄", count: 1, weight: 0.8 }
+        ];
+        // 隨機選取 2-3 個
+        const shuffled = demoTags.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 2) + 2);
+        renderResultTags(shuffled);
+        renderQueryRef();
+
     } else {
         // 【正式連線模式】
-        const { riskLevel } = input;
+        const { riskLevel, tags } = input;
 
         let text;
         if (riskLevel === 'HIGH') {
@@ -374,6 +387,10 @@ function updateResultsUI(input) {
 
         // 建議文字
         if (adviceEl) adviceEl.innerText = text;
+
+        // 🌟 正式模式渲染標籤
+        renderResultTags(tags || []);
+        renderQueryRef();
     }
 
     // 🌟 修正：顯示法律頁腳
@@ -412,6 +429,46 @@ function updateSpectrum(riskKey) {
             });
         });
     });
+}
+
+/** 🌟 新增：渲染結果標籤與衰退權重 */
+function renderResultTags(tags) {
+    const container = document.getElementById('results-tags');
+    const wrapper = document.getElementById('results-tags-container');
+    if (!container || !wrapper) return;
+
+    container.innerHTML = '';
+
+    if (!tags || tags.length === 0) {
+        wrapper.classList.add('hidden');
+        return;
+    }
+
+    wrapper.classList.remove('hidden');
+
+    tags.forEach(tag => {
+        const tagEl = document.createElement('div');
+        tagEl.className = 'ui-tag';
+        
+        // 歷史衰退視覺邏輯 (權重 < 0.4 為低， < 0.7 為中)
+        if (tag.weight < 0.4) tagEl.classList.add('decay-low');
+        else if (tag.weight < 0.7) tagEl.classList.add('decay-medium');
+
+        tagEl.innerHTML = `
+            ${tag.text}
+            <span class="tag-count">${tag.count}</span>
+        `;
+        
+        container.appendChild(tagEl);
+    });
+}
+
+/** 🌟 新增：渲染查詢流水號 */
+function renderQueryRef() {
+    const refEl = document.getElementById('query-ref');
+    if (!refEl) return;
+    const randomRef = 'REF-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    refEl.innerText = `查詢流水號: ${randomRef}`;
 }
 
 
@@ -538,6 +595,7 @@ async function submitReport() {
             switchView('view-report');
             return;
         }
+        updateLiveStats(); // 提交成功後立即更新儀表板
         resetApp();
     } catch (err) {
         console.error('回報 API 呼叫失敗:', err);
@@ -616,6 +674,14 @@ function resetApp() {
 
     const legalFooter = document.querySelector('.legal-footer');
     if (legalFooter) legalFooter.style.display = 'none';
+
+    // 🌟 修正：重置結果頁標籤
+    const tagsContainer = document.getElementById('results-tags');
+    if (tagsContainer) tagsContainer.innerHTML = '';
+    const tagsWrapper = document.getElementById('results-tags-container');
+    if (tagsWrapper) tagsWrapper.classList.add('hidden');
+    const queryRef = document.getElementById('query-ref');
+    if (queryRef) queryRef.innerText = '';
 
     window.scrollTo(0, 0);
 }

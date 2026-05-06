@@ -33,7 +33,15 @@ body {
 }
 
 .view {
-    transition: opacity 0.3s ease;
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.view.hidden {
+    display: none !important;
+    opacity: 0;
+    transform: translateY(10px);
 }
 
 .hidden {
@@ -433,6 +441,75 @@ button {
     color: var(--text);
     line-height: 1.6;
     min-height: 24px;
+}
+
+/* 🌟 新增：查詢結果標籤容器 */
+.results-tags-container {
+    width: 100%;
+    margin-top: 20px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    padding: 15px;
+    box-sizing: border-box;
+}
+
+.results-tags-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+}
+
+.decay-hint {
+    font-size: 10px;
+    color: #aaa;
+    font-weight: normal;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+/* 查詢結果標籤 */
+.ui-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: #f1f2f6;
+    border: 1px solid #dfe4ea;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    color: #2f3542;
+    transition: all 0.3s ease;
+}
+
+.ui-tag .tag-count {
+    background: var(--primary);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+    min-width: 12px;
+    text-align: center;
+}
+
+/* 衰退淡化效果：根據權重降低透明度 */
+.ui-tag.decay-low {
+    opacity: 0.6;
+    background: #f8f9fa;
+    border-style: dashed;
+    filter: grayscale(0.5);
+}
+
+.ui-tag.decay-medium {
+    opacity: 0.8;
 }
 
 .result-card {

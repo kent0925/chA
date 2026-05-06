@@ -96,6 +96,16 @@
                     <!-- 風險建議文字（由 JS 動態填入） -->
                     <div id="risk-advice" class="risk-advice"></div>
 
+                    <!-- 🌟 新增：偵測到的特徵標籤與次數 -->
+                    <div id="results-tags-container" class="results-tags-container hidden">
+                        <div class="results-tags-header">
+                            <span>📌 偵測特徵頻率</span>
+                            <span class="decay-hint">已套用歷史衰退機制</span>
+                        </div>
+                        <div id="results-tags" class="tag-selector-grid"></div>
+                    </div>
+
+                    <div id="query-ref" class="query-ref"></div>
                 </div>
             </div>
 
