@@ -1,58 +1,43 @@
 /* ============================================================
-   頂級設計令牌 (Premium Dark Mode)
+   全域設計令牌
    ============================================================ */
 :root {
-    --primary: #fbbf24;    /* 亮黃金 */
-    --primary-hover: #f59e0b;
-    --bg: #0f172a;         /* 深邃藍黑 */
-    --card-bg: rgba(30, 41, 59, 0.7); /* 玻璃擬態背板 */
-    --text: #f8fafc;
-    --text-dim: #94a3b8;
-    --border: rgba(255, 255, 255, 0.1);
-    --input-bg: rgba(15, 23, 42, 0.6);
-    --danger: #ef4444;
-    --success: #22c55e;
+    --primary: #005088;
+    --secondary: #f1c40f;
+    --text: #2c3e50;
+    --bg: #f8f9fa;
+    --danger: #e74c3c;
+    --level-green: #27ae60;
+    --level-yellow: #f39c12;
+    --level-orange: #e67e22;
+    --level-red: #e74c3c;
 }
 
 /* ============================================================
    基礎排版
    ============================================================ */
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background-color: var(--bg);
-    background-image: radial-gradient(circle at top right, rgba(251, 191, 36, 0.05), transparent),
-                      radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.05), transparent);
-    color: var(--text);
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
-    min-height: 100vh;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #app {
     width: 100%;
-    max-width: 480px;
-    padding: 25px 20px;
+    max-width: 500px;
+    padding: 20px;
     box-sizing: border-box;
 }
 
-/* ============================================================
-   卡片與容器 (Glassmorphism)
-   ============================================================ */
-.card {
-    background: var(--card-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    padding: 24px;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-    margin-bottom: 20px;
-}
-
 .view {
-    transition: opacity 0.3s ease, transform 0.3s ease;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .view.hidden {
@@ -61,44 +46,128 @@ body {
     transform: translateY(10px);
 }
 
+.hidden {
+    display: none !important;
+}
+
+.required {
+    color: var(--danger);
+}
+
 /* ============================================================
    頁首
    ============================================================ */
 header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 header h1 {
-    font-size: 28px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    margin: 0;
-    background: linear-gradient(to right, #fbbf24, #f59e0b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--primary);
+    margin-bottom: 5px;
+    font-size: 24px;
 }
 
 header p {
-    font-size: 14px;
-    color: var(--text-dim);
-    margin-top: 5px;
+    font-size: 13px;
+    color: #7f8c8d;
+    margin: 0;
 }
 
 /* ============================================================
-   表單元素
+   使用者資訊列
    ============================================================ */
+.user-bar {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px 18px;
+    border-radius: 16px;
+    margin: 15px 0;
+    border: 1px solid rgba(0, 80, 136, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    gap: 15px;
+}
+
+.user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #eee;
+    border: 2px solid white;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    object-fit: cover;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.user-quota {
+    font-size: 11px;
+    color: #7f8c8d;
+}
+
+/* ============================================================
+   統計儀表板
+   ============================================================ */
+.stats-dashboard {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.stat-box {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+}
+
+.user-stat {
+    border-bottom: 4px solid var(--secondary);
+}
+
+.stat-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: #7f8c8d;
+}
+
+.stat-number {
+    font-size: 18px;
+    font-weight: 900;
+}
+
+/* ============================================================
+   卡片 & 輸入群組
+   ============================================================ */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+}
+
 .input-group {
-    margin-bottom: 18px;
+    margin-bottom: 15px;
 }
 
 .input-group label {
     display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-    padding-left: 4px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 14px;
 }
 
 .input-row {
@@ -106,23 +175,25 @@ header p {
     gap: 12px;
 }
 
-input:not([type="checkbox"]), select {
+input:not([type="checkbox"]),
+select {
     width: 100%;
     height: 48px;
-    background: var(--input-bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    color: white;
-    padding: 0 16px;
-    font-size: 16px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px !important;
+    background-color: white;
     box-sizing: border-box;
-    transition: all 0.2s ease;
-    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
-input:focus, select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
+select {
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23ccc%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
 }
 
 /* ============================================================
@@ -130,62 +201,68 @@ input:focus, select:focus {
    ============================================================ */
 button {
     width: 100%;
-    height: 52px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
+    padding: 15px;
     border: none;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
 }
 
 .btn-primary {
     background: var(--primary);
-    color: #451a03;
-}
-
-.btn-primary:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+    color: white;
 }
 
 .btn-outline {
-    background: transparent;
-    border: 1.5px solid var(--primary);
-    color: var(--primary);
+    background: none;
+    border: 2px solid var(--secondary);
+    color: #8a6d3b;
 }
 
 .btn-submit-yellow {
-    background: var(--primary);
-    color: #451a03;
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.1);
+    background: var(--secondary);
+    color: #5c4b12;
 }
 
 /* ============================================================
    分隔線
    ============================================================ */
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+    color: #bdc3c7;
+    font-size: 12px;
+}
+
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #eee;
+}
+
+.divider span {
+    padding: 0 10px;
+}
+
 .divider-small {
     display: flex;
     align-items: center;
-    margin: 25px 0 15px;
-    color: var(--text-dim);
+    margin: 15px 0 10px;
     font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    color: var(--primary);
+    font-weight: bold;
 }
 
 .divider-small::after {
     content: "";
     flex: 1;
     height: 1px;
-    background: var(--border);
-    margin-left: 15px;
+    background: #eee;
+    margin-left: 10px;
 }
 
 /* ============================================================
@@ -195,67 +272,58 @@ button {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    margin-top: 10px;
 }
 
 .tag-chip {
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border);
-    border-radius: 100px;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    background: #fdfdfd;
     font-size: 13px;
-    color: var(--text-dim);
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
 .tag-chip.selected {
     background: var(--primary);
-    color: #451a03;
+    color: white;
     border-color: var(--primary);
-    font-weight: 600;
 }
 
 /* ============================================================
-   切結書勾選框
+   身分切換
    ============================================================ */
-.agreement-box {
-    margin: 20px 0;
-    background: rgba(239, 68, 68, 0.05);
-    border-radius: 12px;
-    padding: 15px;
-    border: 1px dashed rgba(239, 68, 68, 0.2);
-}
-
-.agreement-label {
+.identity-switch {
     display: flex;
-    gap: 12px;
-    cursor: pointer;
+    background: #eee;
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 20px;
+}
+
+.identity-switch button {
+    flex: 1;
+    padding: 10px;
     font-size: 13px;
-    line-height: 1.5;
-    color: var(--text-dim);
+    border-radius: 6px;
+    background: none;
+    margin: 0;
+    color: #7f8c8d;
 }
 
-.agreement-label span strong {
-    color: var(--danger);
-}
-
-.agreement-label input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    margin-top: 2px;
-    accent-color: var(--danger);
+.identity-switch button.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* ============================================================
-   其他組件 (Modal, Stats, etc.)
+   Modal
    ============================================================ */
-.hidden { display: none !important; }
-
 .modal {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.6);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -264,19 +332,18 @@ button {
 }
 
 .modal-content {
-    background: #1e293b;
+    background: white;
     width: 100%;
-    max-width: 440px;
-    max-height: 85vh;
-    border-radius: 24px;
-    border: 1px solid var(--border);
+    max-width: 480px;
+    max-height: 90vh;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
 }
 
 .modal-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--border);
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -286,67 +353,80 @@ button {
 
 .close-btn {
     background: none;
-    color: var(--text-dim);
     font-size: 24px;
-    width: 32px; height: 32px;
+    width: auto;
+    color: #aaa;
     padding: 0;
 }
 
 .modal-body {
-    padding: 24px;
+    padding: 20px;
     overflow-y: auto;
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--text-dim);
+    color: #333;
 }
-
-.modal-body h3 { color: white; font-size: 16px; margin-top: 20px; }
 
 .modal-footer {
-    padding: 20px 24px;
-    border-top: 1px solid var(--border);
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
 }
 
-/* 數據儀表板樣式 */
-.stats-dashboard {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 25px;
+/* ============================================================
+   結果頁面
+   ============================================================ */
+.risk-spectrum {
+    position: relative;
+    width: 100%;
+    margin: 18px 0 8px;
+    padding-bottom: 22px;
 }
 
-.stat-box {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    padding: 12px;
-    border-radius: 16px;
+.spectrum-bar {
+    display: flex;
+    height: 12px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.spectrum-seg { flex: 1; }
+.seg-green { background: #27ae60; opacity: 0.3; }
+.seg-yellow { background: #f1c40f; opacity: 0.3; }
+.seg-orange { background: #e67e22; opacity: 0.3; }
+.seg-red { background: #e74c3c; opacity: 0.3; }
+
+.spectrum-pointer {
+    position: absolute;
+    top: -4px;
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 10px solid #333;
+    transform: translateX(-8px);
+    transition: left 0.6s;
+}
+
+.spectrum-labels {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 6px;
+    font-size: 10px;
+    color: #999;
+}
+
+.risk-advice {
+    text-align: center;
+    font-weight: bold;
+    margin-top: 12px;
+    color: var(--text);
+}
+
+.query-ref {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #999;
     text-align: center;
 }
 
-.stat-title { font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
-.stat-number { font-size: 20px; font-weight: 800; color: var(--primary); }
-.stat-unit { font-size: 10px; opacity: 0.6; }
-
-/* 使用者資訊列 */
-.user-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    padding: 10px 15px;
-    border-radius: 100px;
-    border: 1px solid var(--border);
-    margin-bottom: 25px;
-}
-
-.user-avatar { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--primary); }
-.user-name { font-size: 14px; font-weight: 600; }
-.user-quota { font-size: 11px; color: var(--text-dim); }
-
 /* 頁尾 */
-footer { text-align: center; margin-top: 40px; padding-bottom: 20px; }
-.legal-text { font-size: 11px; color: var(--text-dim); }
+footer { text-align: center; margin-top: 30px; }
+.legal-text { font-size: 11px; color: #aaa; }
 .footer-links a { color: var(--primary); text-decoration: none; font-size: 12px; }
-
-/* 修正滑軌指標顏色 */
-.spectrum-pointer { border-top-color: var(--primary) !important; }
