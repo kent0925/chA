@@ -249,7 +249,14 @@ function openToSModal(force = false) {
 function acceptToS() { localStorage.setItem('tos_v1', 'true'); document.getElementById('tos-modal').classList.add('hidden'); }
 function checkFirstTimeUser() { if (!localStorage.getItem('tos_v1')) openToSModal(true); }
 function switchView(vId) { ['view-search', 'view-loading', 'view-results', 'view-report'].forEach(id => { const v = document.getElementById(id); if (v) v.classList.toggle('hidden', id !== vId); }); }
-function openReportView() { switchView('view-report'); renderTags(); }
+function openReportView() {
+    if (currentUser.platform !== 'LINE') {
+        alert("🔒 權限限制：\n為確保資料真實性，建檔功能僅限 LINE 認證用戶使用。您目前的身分為: " + currentUser.displayName);
+        return;
+    }
+    switchView('view-report');
+    renderTags();
+}
 function openTakedownForm() { window.open("https://line.me/R/ti/p/@your_line_oa_id", '_blank'); }
 
 // --- 7. 初始化 ---
