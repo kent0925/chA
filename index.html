@@ -247,10 +247,19 @@
                     if (liff.isLoggedIn()) {
                         const p = await liff.getProfile();
                         currentUser = { uid: `LINE_${p.userId}`, platform: 'LINE', displayName: p.displayName, pictureUrl: p.pictureUrl };
-                    } else { liff.login(); return; }
+                        updateUserInfoUI();
+                    } else { 
+                        liff.login(); 
+                        return; 
+                    }
+                } else {
+                    alert("系統錯誤：無法載入 LINE 認證模組。請在 LINE App 內開啟此網頁。");
+                    document.body.innerHTML = "<div style='color:white; text-align:center; padding:50px;'>請在 LINE 內開啟此系統</div>";
                 }
-            } catch (e) { currentUser = { uid: 'GUEST_ERR', platform: 'WEB', displayName: '訪客測試' }; }
-            updateUserInfoUI();
+            } catch (e) { 
+                console.error("LIFF Init Error", e);
+                alert("身份驗證失敗，請重新開啟網頁。");
+            }
         }
 
         function updateUserInfoUI() {
