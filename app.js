@@ -167,9 +167,13 @@ function updateResultsUI(input) {
     const adviceEl = document.getElementById('risk-advice');
     let risk = 'NONE';
     if (typeof input === 'number') { adviceEl.innerText = "建議依標準程序查核 (試用模式)"; renderResultTags([{ text: "範例數據", count: 1, weight: 1.0 }]); }
-    else { risk = input.riskLevel || 'NONE'; adviceEl.innerText = input.message || "建議依標準程序查核"; renderResultTags(input.tags || []); document.getElementById('btn-admin-manage').style.display = input.isAdmin ? 'block' : 'none'; }
+    else { 
+        risk = input.riskLevel || 'NONE'; 
+        adviceEl.innerText = input.message || "建議依標準程序查核"; 
+        renderResultTags(input.tags || []); 
+    }
     updateSpectrum(risk);
-    renderQueryRef();
+    renderQueryRef(input.isAdmin);
 }
 
 function renderResultTags(tags) {
@@ -197,9 +201,25 @@ function updateSpectrum(riskKey) {
     });
 }
 
-function renderQueryRef() {
+function renderQueryRef(isAdmin = false) {
     const refEl = document.getElementById('query-ref');
-    if (refEl) refEl.innerText = `查詢流水號: REF-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    if (!refEl) return;
+    let html = `查詢流水號: REF-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    // 🛠️ 只有管理員會看到流水號旁邊的小齒輪，點了才在最下方顯示工具
+    if (isAdmin) {
+        html += ` <span onclick="toggleAdminTool()" style="cursor:pointer; color:var(--primary); font-size:1.1em; vertical-align:middle; margin-left:10px; opacity:0.6;">🛠️</span>`;
+    }
+    refEl.innerHTML = html;
+}
+
+function toggleAdminTool() {
+    const section = document.getElementById('admin-tool-section');
+    if (section) {
+        section.classList.toggle('hidden');
+        if (!section.classList.contains('hidden')) {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
 }
 
 // --- 5. 回報提交 (補全性別欄位) ---
@@ -250,11 +270,7 @@ function acceptToS() { localStorage.setItem('tos_v1', 'true'); document.getEleme
 function checkFirstTimeUser() { if (!localStorage.getItem('tos_v1')) openToSModal(true); }
 function switchView(vId) { ['view-search', 'view-loading', 'view-results', 'view-report'].forEach(id => { const v = document.getElementById(id); if (v) v.classList.toggle('hidden', id !== vId); }); }
 function openReportView() {
-    // 🔓 終極解鎖：只要 uid 包含 LINE_ (代表已登入)，就不分平台、不分電腦手機，全部開放回報
-    if (!currentUser.uid.includes('LINE_')) {
-        alert("🔒 權限限制：\n為確保資料真實性，建檔功能僅限 LINE 認證用戶使用。您的身分為: " + currentUser.displayName);
-        return;
-    }
+    // 🔓 徹底解鎖：不再進行前端身分判定，直接進入回報頁面
     switchView('view-report');
     renderTags();
 }
@@ -281,14 +297,4 @@ async function updateLiveStats() {
             document.getElementById("stat-today").innerText = s.today || 0;
         }
     } catch (e) {}
-}
-
-async function toggleUidDisplay() {
-    const el = document.getElementById('display-uid');
-    if (!el || !currentUser.uid) return;
-    if (el.innerText !== "●●●●●●●●") { el.innerText = "●●●●●●●●"; return; }
-    const hUid = await hashData(currentUser.uid);
-    el.innerText = hUid;
-    if (navigator.clipboard) { await navigator.clipboard.writeText(hUid); alert("✅ 已複製 ID"); }
-    callGAS({ action: "log_admin_apply", name: currentUser.displayName, hUid: hUid });
 }
