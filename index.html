@@ -140,42 +140,42 @@
                         <option value="AREA_ISDV">外島/離島生活圈</option>
                     </select>
                 </div>
-                <div class="input-group"><label>姓名 <span class="required">*</span></label><input type="text" id="report-name" required></div>
+                <div class="input-group"><label>對象姓名 <span class="required">*</span></label><input type="text" id="report-name" placeholder="請輸入對象真實姓名" required></div>
                 <div class="input-group">
-                    <label>年齡/性別 <span class="required">*</span></label>
+                    <label>電話末四碼 <span class="required">*</span></label>
+                    <input type="tel" id="report-phone" maxlength="4" placeholder="請輸入 4 位數字" oninput="this.value=this.value.replace(/\D/g,'');" required>
+                </div>
+                <div class="input-group">
+                    <label>對象年齡 / 性別 <span class="required">*</span></label>
                     <div style="display: flex; gap: 10px;">
                         <select id="report-age" style="flex: 1;"><option value="20-30">20-30歲</option><option value="30-40">30-40歲</option><option value="40-50">40-50歲</option><option value="50+">50歲+</option></select>
                         <select id="report-gender" style="flex: 1;"><option value="男">男</option><option value="女">女</option><option value="其他">其他</option></select>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label>電話末四碼 <span class="required">*</span></label>
-                    <input type="tel" id="report-phone" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'');" required>
-                </div>
-                <div class="input-group">
-                    <label>年份 <span class="required">*</span></label>
-                    <select id="report-year" required></select>
-                </div>
-                
-                <div class="input-group">
-                    <label>每月租金級距 <span class="required">*</span></label>
-                    <select id="report-rent" required>
-                        <option value="10k_under">1萬(含)以下</option>
-                        <option value="10k_20k">1萬 - 2萬</option>
-                        <option value="20k_30k">2萬 - 3萬</option>
-                        <option value="30k_50k">3萬 - 5萬</option>
-                        <option value="50k_over">5萬以上</option>
-                    </select>
+
+                <div class="divider-small"><span>租賃詳細資訊</span></div>
+
+                <div class="input-row">
+                    <div class="input-group" style="flex: 1;">
+                        <label>回報年份 <span class="required">*</span></label>
+                        <select id="report-year" required></select>
+                    </div>
+                    <div class="input-group" style="flex: 1;">
+                        <label>每月租金 <span class="required">*</span></label>
+                        <select id="report-rent" required>
+                            <option value="10k_under">1萬(含)以下</option><option value="10k_20k">1-2萬</option><option value="20k_30k">2-3萬</option><option value="30k_50k">3-5萬</option><option value="50k_over">5萬以上</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div id="fields-tenant" class="dynamic-fields">
                     <div class="input-group">
-                        <label>承租型態</label>
-                        <select id="report-tenant-target"><option value="住宅">一般住宅</option><option value="店面">店面</option><option value="商辦">商辦/廠房</option></select>
-                    </div>
-                    <div class="input-group">
                         <label>格局類型</label>
                         <select id="report-layout"><option value="套房">獨立/分租套房</option><option value="雅房">分租雅房</option><option value="整層">整層住家</option><option value="其他">其他</option></select>
+                    </div>
+                    <div class="input-group">
+                        <label>承租型態</label>
+                        <select id="report-tenant-target"><option value="住宅">一般住宅</option><option value="店面">店面</option><option value="商辦">商辦/廠房</option></select>
                     </div>
                 </div>
                 <div id="fields-landlord" class="dynamic-fields" style="display: none;">
