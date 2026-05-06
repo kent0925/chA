@@ -891,6 +891,27 @@ async function adminTakedown(recordId) {
     }
 }
 
+// --- 8.6 Toast 提示系統 ---
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerText = message;
+
+    container.appendChild(toast);
+
+    // 觸發進場動畫
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    // 3秒後自動移除
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 // --- 9. 初始化 ---
 window.onload = async () => {
     try {
