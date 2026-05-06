@@ -774,14 +774,17 @@ async function toggleUidDisplay() {
             uid: hUid
         };
         const result = await callGAS(payload);
-        if (result && result.adminCode) {
+        if (result && result.status === "ok" && result.adminCode) {
             uidEl.innerText = result.adminCode;
-            console.log("🔑 管理員配置代碼已獲取，請填入 GAS 指令碼屬性 ADMIN_UIDS 中。");
+            console.log("🔑 [成功] 管理員配置代碼:", result.adminCode);
         } else {
-            uidEl.innerText = hUid.substring(0, 8) + "...";
+            // 若失敗，顯示較長的第一層雜湊作為參考
+            uidEl.innerText = "本地代碼: " + hUid.substring(0, 16) + "...";
+            console.warn("⚠️ 無法從後端獲取雙重雜湊代碼，請確認 GAS 已重新部署且 URL 正確。");
         }
     } catch (e) {
-        uidEl.innerText = "獲取失敗";
+        uidEl.innerText = "連線失敗";
+        console.error("UID 獲取錯誤:", e);
     }
 }
 
