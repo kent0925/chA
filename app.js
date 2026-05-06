@@ -756,6 +756,7 @@ function generateYearOptions() {
 /**
  * 🔧 切換 UID 顯示並向伺服器獲取管理員代碼
  */
+// 🔧 切換 UID 顯示（直接顯示完整前端雜湊代碼）
 async function toggleUidDisplay() {
     const uidEl = document.getElementById('display-uid');
     if (!uidEl || !currentUser.uid) return;
@@ -765,45 +766,24 @@ async function toggleUidDisplay() {
         return;
     }
 
-    uidEl.innerText = "取得中...";
-    
     try {
+        // 直接計算完整的第一層雜湊 (不依賴後端)
         const hUid = await hashData(currentUser.uid);
-        const payload = {
-            action: "get_admin_code",
-            uid: hUid
-        };
-        const result = await callGAS(payload);
-        if (result && result.status === "ok" && result.adminCode) {
-            const code = result.adminCode;
-            uidEl.innerText = code;
-            
-            // 📋 嘗試自動複製 (安全檢查)
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(code);
-                showToast("✅ 配置代碼已複製到剪貼簿！", "success");
-            } else {
-                showToast("🔑 請手動選取並複製代碼", "info");
-            }
-            console.log("🔑 [成功] 管理員配置代碼:", code);
+        uidEl.innerText = hUid;
+        
+        // 📋 嘗試自動複製
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(hUid);
+            showToast("✅ 完整 ID 已複製！", "success");
         } else {
-            // 若失敗，顯示較長的第一層雜湊作為參考
-            const fallbackCode = hUid.substring(0, 16);
-            uidEl.innerText = "本地代碼: " + fallbackCode + "...";
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                await navigator.clipboard.writeText(fallbackCode);
-                showToast("⚠️ 已複製本地代碼，請確認 GAS 連線", "warning");
-            }
-            console.warn("⚠️ 無法從後端獲取雙重雜湊代碼，請確認 GAS 已重新部署且 URL 正確。");
+            showToast("🔑 請手動選取並複製 ID", "info");
         }
+        
+        console.log("🔑 [前端雜湊] 您目前的識別碼為:", hUid);
+        
     } catch (e) {
-        // 區分錯誤類型
-        if (e.message && e.message.includes("fetch")) {
-            uidEl.innerText = "網路連線失敗";
-        } else {
-            uidEl.innerText = "環境設定錯誤";
-            console.error("UID 獲取錯誤:", e);
-        }
+        uidEl.innerText = "獲取失敗";
+        console.error("UID 處理錯誤:", e);
     }
 }
 
