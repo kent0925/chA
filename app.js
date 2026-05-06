@@ -753,37 +753,35 @@ function generateYearOptions() {
 //  ⚙️ 管理員專用函式
 // ============================================================
 
-/**
- * 🔧 切換 UID 顯示並向伺服器獲取管理員代碼
- */
-// 🔧 切換 UID 顯示（直接顯示完整前端雜湊代碼）
+// 🔧 管理員身分識別 (純前端計算，點擊即複製)
 async function toggleUidDisplay() {
     const uidEl = document.getElementById('display-uid');
     if (!uidEl || !currentUser.uid) return;
 
+    // 若已顯示，則切換回隱藏
     if (uidEl.innerText !== "●●●●●●●●") {
         uidEl.innerText = "●●●●●●●●";
         return;
     }
 
     try {
-        // 直接計算完整的第一層雜湊 (不依賴後端)
+        // 1. 直接進行前端加密
         const hUid = await hashData(currentUser.uid);
+        
+        // 2. 顯示完整代碼
         uidEl.innerText = hUid;
         
-        // 📋 嘗試自動複製
+        // 3. 自動複製
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(hUid);
-            showToast("✅ 完整 ID 已複製！", "success");
+            showToast("✅ 加密 ID 已複製到剪貼簿", "success");
         } else {
-            showToast("🔑 請手動選取並複製 ID", "info");
+            showToast("🔑 請長按選取並複製 ID", "info");
         }
         
-        console.log("🔑 [前端雜湊] 您目前的識別碼為:", hUid);
-        
-    } catch (e) {
-        uidEl.innerText = "獲取失敗";
-        console.error("UID 處理錯誤:", e);
+    } catch (err) {
+        uidEl.innerText = "識別碼計算中...";
+        console.error("UID Error:", err);
     }
 }
 
