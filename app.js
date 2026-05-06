@@ -1,7 +1,7 @@
 // --- 0. 核心安全配置 ---
 const SYSTEM_SALT = "TrU$t_Sca1e_8xP@qL9!mZ";
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw0dAVQ2HOQDvJKNBpj0FT1HJIPW6GLCdJkye3419ZMi2lzFqTUExD8oHdvLG4H_pKq/exec";
-const DEFAULT_LIFF_ID = "2006766467-3X6V97xQ"; 
+const DEFAULT_LIFF_ID = "2009974240-zhGWMVVX"; 
 
 // --- 0.5 通用 API 呼叫 ---
 async function callGAS(payload) {
