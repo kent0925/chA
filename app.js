@@ -2,14 +2,19 @@
 const SYSTEM_SALT = "TrU$t_Sca1e_8xP@qL9!mZ";
 
 // 🔗 GAS Web App 部署 URL（部署後請替換為實際 URL）
-// 這是前端唯一需要硬編碼的設定值，其他設定皆存放於 GAS 指令碼屬性
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw0dAVQ2HOQDvJKNBpj0FT1HJIPW6GLCdJkye3419ZMi2lzFqTUExD8oHdvLG4H_pKq/exec";
+
+// 🆔 備援 LIFF ID (若後端獲取失敗時使用)
+const DEFAULT_LIFF_ID = "2006766467-3X6V97xQ"; 
 
 // --- 0.5 通用 API 呼叫函式 ---
 async function callGAS(payload) {
-    if (!GAS_API_URL || GAS_API_URL === "https://script.google.com/macros/s/AKfycbw0dAVQ2HOQDvJKNBpj0FT1HJIPW6GLCdJkye3419ZMi2lzFqTUExD8oHdvLG4H_pKq/exec") {
-        console.warn("⚠️ GAS_API_URL 尚未配置，使用 Demo 模式");
-        return null;
+    // 檢查是否仍在使用 Demo URL
+    const isDemoUrl = !GAS_API_URL || GAS_API_URL.includes("AKfycbw0dAVQ2HOQDvJKNBpj0FT1HJIPW6GLCdJkye3419ZMi2lzFqTUExD8oHdvLG4H_pKq");
+    
+    if (isDemoUrl) {
+        console.warn("⚠️ 偵測到您尚未在 app.js 第一行更換為您自己的 GAS URL。");
+        // 為了讓使用者能測試 ID 獲取，此處不直接 return null，而是嘗試發送
     }
 
     // 建立逾時控制 (10秒)
@@ -976,12 +981,16 @@ function showToast(message, type = 'info') {
 window.onload = async () => {
     try {
         const config = await callGAS({ action: 'config' });
-        if (config && config.status === 'ok') {
-            currentUser._liffId = config.liffId || '';
+        if (config && config.status === 'ok' && config.liffId) {
+            currentUser._liffId = config.liffId;
             console.log('🔧 後端設定已載入');
+        } else {
+            console.warn('⚠️ 後端未回傳 LIFF_ID，使用前端預設值');
+            currentUser._liffId = DEFAULT_LIFF_ID;
         }
     } catch (err) {
-        console.warn('⚠️ 無法取得後端設定，使用預設值:', err.message);
+        console.warn('⚠️ 無法取得後端設定，使用前端預設值:', err.message);
+        currentUser._liffId = DEFAULT_LIFF_ID;
     }
 
     await initializeAuth();
