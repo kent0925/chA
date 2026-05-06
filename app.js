@@ -355,16 +355,14 @@ function updateResultsUI(input) {
         // 建議文字
         if (adviceEl) adviceEl.innerText = text;
 
-        // 🌟 Demo 模式模擬標籤數據 (包含次數與衰退權重)
+        // 🌟 Demo 模式模擬標籤數據 (展示完整衰退層級)
         const demoTags = [
-            { text: "💰 準時給付租金", count: 3, weight: 1.0 },
-            { text: "✨ 屋況維持極佳", count: 2, weight: 0.9 },
-            { text: "💸 租金給付遲延", count: 1, weight: 0.3 }, // 歷史衰退標籤
-            { text: "🏚️ 設備毀損紀錄", count: 1, weight: 0.8 }
+            { text: "💸 租金給付遲延", count: 2, weight: 1.0 }, // 1年內 (鮮紅/100%)
+            { text: "✨ 屋況維持極佳", count: 1, weight: 0.7 }, // 1-2年 (稍微淡化/70%)
+            { text: "🏚️ 設備毀損紀錄", count: 1, weight: 0.4 }, // 2-3年 (50%透明/⏳)
+            { text: "📦 堆置雜物爭議", count: 3, weight: 0.1 }  // 3年以上 (灰階/10%)
         ];
-        // 隨機選取 2-3 個
-        const shuffled = demoTags.sort(() => 0.5 - Math.random()).slice(0, Math.floor(Math.random() * 2) + 2);
-        renderResultTags(shuffled);
+        renderResultTags(demoTags);
         renderQueryRef();
 
     } else {
@@ -450,9 +448,10 @@ function renderResultTags(tags) {
         const tagEl = document.createElement('div');
         tagEl.className = 'ui-tag';
         
-        // 歷史衰退視覺邏輯 (權重 < 0.4 為低， < 0.7 為中)
-        if (tag.weight < 0.4) tagEl.classList.add('decay-low');
-        else if (tag.weight < 0.7) tagEl.classList.add('decay-medium');
+        // 歷史衰退視覺邏輯 (精細 4 層級)
+        if (tag.weight <= 0.1) tagEl.classList.add('decay-10');
+        else if (tag.weight <= 0.4) tagEl.classList.add('decay-40');
+        else if (tag.weight <= 0.75) tagEl.classList.add('decay-70');
 
         tagEl.innerHTML = `
             ${tag.text}

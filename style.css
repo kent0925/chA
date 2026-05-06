@@ -23,6 +23,13 @@ body {
     padding: 0;
     display: flex;
     justify-content: center;
+    overscroll-behavior-y: none; /* 防止下拉重新整理 */
+    -webkit-tap-highlight-color: transparent; /* 移除點擊藍框 */
+}
+
+/* 行動端捲動平滑 */
+* {
+    -webkit-overflow-scrolling: touch;
 }
 
 #app {
@@ -214,9 +221,15 @@ button {
     border: none;
     border-radius: 8px;
     font-size: 16px;
-    font-weight: bold;
     cursor: pointer;
     margin-top: 8px;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    user-select: none;
+}
+
+button:active {
+    transform: scale(0.96);
+    filter: brightness(0.9);
 }
 
 .btn-primary {
@@ -500,16 +513,51 @@ button {
     text-align: center;
 }
 
-/* 衰退淡化效果：根據權重降低透明度 */
-.ui-tag.decay-low {
-    opacity: 0.6;
-    background: #f8f9fa;
-    border-style: dashed;
-    filter: grayscale(0.5);
+/* 歷史衰退機制視覺樣式 (基於權重) */
+.ui-tag.decay-70 {
+    opacity: 0.75;
 }
 
-.ui-tag.decay-medium {
-    opacity: 0.8;
+.ui-tag.decay-40 {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+/* 在 2-3 年 (40%) 的標籤文字後加入沙漏圖示 */
+.ui-tag.decay-40::after {
+    content: ' ⏳';
+    font-size: 10px;
+    margin-left: 2px;
+}
+
+.ui-tag.decay-10 {
+    opacity: 0.3;
+    filter: grayscale(1);
+    background: #f8f9fa;
+    border-color: #eee;
+}
+
+/* 標籤圖例 (Legend) */
+.results-legend {
+    margin-top: 15px;
+    padding: 10px;
+    background: #fcfcfc;
+    border-radius: 8px;
+    border: 1px solid #f0f0f0;
+    font-size: 11px;
+    color: #888;
+    line-height: 1.5;
+}
+
+.legend-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.legend-icon {
+    font-size: 14px;
+    color: var(--secondary);
 }
 
 .result-card {
@@ -958,20 +1006,27 @@ button {
 
 .modal-content {
     background: #fff;
-    width: 90%;
-    max-width: 500px;
-    height: 80vh;
-    border-radius: 12px;
+    width: 92%;
+    max-width: 550px;
+    height: 82vh;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: modalSlideUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes modalSlideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
-    padding: 15px 20px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eee;
+    padding: 20px 24px;
+    background: linear-gradient(to right, #f8f9fa, #ffffff);
+    border-bottom: 1px solid #edf2f7;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -979,36 +1034,83 @@ button {
 
 .modal-header h2 {
     margin: 0;
-    font-size: 1.1rem;
-    color: #333;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.5px;
 }
 
 .close-btn {
-    background: none;
+    background: #f1f2f6;
     border: none;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     cursor: pointer;
-    color: #888;
+    color: #a0aec0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #e2e8f0;
+    color: #4a5568;
+    transform: rotate(90deg);
 }
 
 .modal-body {
-    padding: 20px;
+    padding: 24px;
     overflow-y: auto;
     flex-grow: 1;
-    line-height: 1.6;
-    color: #444;
+    line-height: 1.8;
+    color: #4a5568;
+    background-image: radial-gradient(#f7fafc 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* 自訂精緻捲軸 */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.modal-body::-webkit-scrollbar-track {
+    background: #f7fafc;
+}
+.modal-body::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 10px;
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
 }
 
 .modal-body h3 {
-    font-size: 1rem;
-    color: #2c3e50;
-    margin: 15px 0 5px 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 25px 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-body h3::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background: var(--secondary);
+    border-radius: 2px;
 }
 
 .modal-body p {
-    font-size: 0.9rem;
-    margin-bottom: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
     text-align: justify;
+    padding-left: 12px;
+    border-left: 1px solid #edf2f7;
 }
 
 .modal-footer {
@@ -1076,4 +1178,52 @@ button {
     background-color: #003d66;
     cursor: pointer;
     transform: translateY(-2px);
+}
+
+/* ============================================================
+   📱 行動端專屬 Media Queries
+   ============================================================ */
+@media (max-width: 400px) {
+    #app {
+        padding: 15px 12px;
+    }
+
+    header h1 {
+        font-size: 20px;
+    }
+
+    .user-bar {
+        padding: 10px 14px;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .modal-content {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .modal-body {
+        padding: 18px;
+    }
+    
+    .tag-chip {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* 針對超級窄的小手機 (iPhone SE 等) */
+@media (max-width: 350px) {
+    .stat-number {
+        font-size: 15px;
+    }
+    
+    .identity-switch button {
+        font-size: 11px;
+        padding: 8px 4px;
+    }
 }
