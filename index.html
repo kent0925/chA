@@ -34,11 +34,7 @@
             </div>
         </div>
 
-        <!-- 🔧 管理員識別區域 (點擊顯示) -->
-        <div class="admin-identity-bar" id="admin-id-bar" onclick="toggleUidDisplay()">
-            ID: <span id="display-uid">●●●●●●●●</span> (點擊獲取管理員配置代碼)
-        </div>
-
+        <!-- 搜尋主畫面 -->
         <section id="view-search" class="view">
             <div class="card">
                 <div class="input-group">
@@ -150,7 +146,11 @@
 
             <div class="btn-group" style="padding: 0 15px;">
                 <button class="btn-primary" style="margin-top: 10px;" onclick="resetApp()">🔙 返回重新搜尋</button>
-                <button id="btn-admin-manage" class="btn-text-only" style="display: none; width: 100%;" onclick="switchView('view-admin-tool')">⚙️ 管理員下架工具</button>
+            </div>
+
+            <!-- 🛠️ 管理員隱藏工具區 (點選後出現在最下方) -->
+            <div id="admin-tool-section" class="hidden" style="margin-top: 20px; border-top: 1px dashed var(--border); padding: 15px;">
+                <button id="btn-admin-manage" class="btn-secondary w-full" onclick="switchView('view-admin-tool')">⚙️ 進入管理員下架工具</button>
             </div>
         </section>
 
