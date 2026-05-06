@@ -22,7 +22,7 @@ async function callGAS(payload) {
 
 let currentUser = { uid: 'GUEST', platform: 'WEB', displayName: '訪客測試', pictureUrl: '', personalCount: 0 };
 
-// --- 1. 加密引擎 ---
+// --- 1. 加密引擎 (SHA-256 純 JS 版) ---
 function hashData(text) {
     if (!text) return Promise.resolve("");
     var saltedText = text + SYSTEM_SALT;
@@ -67,29 +67,51 @@ async function initializeAuth() {
 }
 
 function updateUserInfoUI() {
-    const n = document.getElementById('user-name'), a = document.getElementById('user-avatar'), b = document.getElementById('user-bar');
+    const n = document.getElementById('user-name'), a = document.getElementById('user-avatar'), b = document.getElementById('user-bar'), q = document.getElementById('user-quota');
     if (n) n.innerText = currentUser.displayName;
     if (a && currentUser.pictureUrl) a.src = currentUser.pictureUrl;
     if (b) b.classList.remove('hidden');
+    if (q) q.innerText = currentUser.platform === 'LINE' ? "⭐ LINE 認證用戶" : "☁️ 網頁試用模式";
 }
 
-// --- 3. 標籤與庫 ---
+// --- 3. 標籤庫 ---
 const TAG_LIBRARY = {
     tenant: [
         { text: "✨ 屋況維持極佳", impact: "good" }, { text: "🛠️ 擅自更動裝修", impact: "bad" },
         { text: "🤫 維持鄰里安寧", impact: "good" }, { text: "📦 堆置雜物爭議", impact: "bad" },
+        { text: "🛡️ 設備妥善維護", impact: "good" }, { text: "🏚️ 設備毀損紀錄", impact: "bad" },
+        { text: "📱 溝通聯繫順暢", impact: "good" }, { text: "🔊 鄰里噪音投訴", impact: "bad" },
+        { text: "🧹 空間整潔清空", impact: "good" }, { text: "🚬 菸寵異味殘留", impact: "bad" },
         { text: "💰 準時給付租金", impact: "good" }, { text: "💸 租金給付遲延", impact: "bad" }
     ],
     landlord: [
         { text: "💸 押金如期返還", impact: "good" }, { text: "🔍 押金扣留爭議", impact: "bad" },
-        { text: "⚡ 修繕處理迅速", impact: "good" }, { text: "⏳ 修繕推託延遲", impact: "bad" }
+        { text: "⚡ 修繕處理迅速", impact: "good" }, { text: "⏳ 修繕推託延遲", impact: "bad" },
+        { text: "🏠 尊重房客隱私", impact: "good" }, { text: "👣 未經授權入內", impact: "bad" },
+        { text: "💧 台水台電計費", impact: "good" }, { text: "📈 超收水電費用", impact: "bad" },
+        { text: "📜 契約條款透明", impact: "good" }, { text: "⚖️ 契約條款嚴苛", impact: "bad" },
+        { text: "👼 配合申報稅補", impact: "good" }, { text: "🚫 拒絕租金補貼", impact: "bad" },
+        { text: "🤝 溝通明理友善", impact: "good" }, { text: "💢 情緒勒索施壓", impact: "bad" }
     ],
     student: [
-        { text: "🎓 專注學業單純", impact: "good" }, { text: "🎉 帶人開趴喧嘩", impact: "bad" }
+        { text: "🎓 專注學業單純", impact: "good" }, { text: "🎉 帶人開趴喧嘩", impact: "bad" },
+        { text: "🧹 宿舍維持整潔", impact: "good" }, { text: "🛵 機車違規停放", impact: "bad" },
+        { text: "🤝 家長理性溝通", impact: "good" }, { text: "🛡️ 家長過度介入", impact: "bad" },
+        { text: "💰 租金按時繳納", impact: "good" }, { text: "💸 寒暑假欠繳/空窗", impact: "bad" }
     ]
 };
 let selectedTags = new Set();
 let currentReportType = 'tenant';
+
+function setReportType(type) {
+    currentReportType = type;
+    document.querySelectorAll('.identity-switch button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-report-${type}`)?.classList.add('active');
+    document.getElementById('fields-tenant').style.display = (type==='tenant'||type==='student') ? 'block' : 'none';
+    document.getElementById('fields-landlord').style.display = (type==='landlord') ? 'block' : 'none';
+    selectedTags.clear();
+    renderTags();
+}
 
 function renderTags() {
     const container = document.getElementById('tag-container');
@@ -107,15 +129,18 @@ function renderTags() {
     });
 }
 
-// --- 4. 搜尋邏輯 ---
+// --- 4. 搜尋與結果 ---
 async function handleSearch() {
     const name = document.getElementById('in-name').value.trim();
+    const phoneRaw = document.getElementById('in-phone').value.trim();
+    const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
     if (!name) return alert("請輸入姓名");
     switchView('view-loading');
     const hName = await hashData(name);
+    const hPhone = phoneClean ? await hashData(phoneClean) : "";
     const hUid = await hashData(currentUser.uid);
     try {
-        const result = await callGAS({ action: "search", uid: hUid, platform: currentUser.platform, hName });
+        const result = await callGAS({ action: "search", uid: hUid, platform: currentUser.platform, hName, hPhone });
         if (result && result.status === 'ok') { updateResultsUI(result); }
         else { updateResultsUI(95); }
     } catch (e) { updateResultsUI(95); }
@@ -125,18 +150,96 @@ async function handleSearch() {
 function updateResultsUI(input) {
     const adviceEl = document.getElementById('risk-advice');
     let risk = 'NONE';
-    if (typeof input === 'number') { adviceEl.innerText = "建議依標準程序查核 (試用模式)"; }
-    else { risk = input.riskLevel || 'NONE'; adviceEl.innerText = input.message || "建議依標準程序查核"; }
+    if (typeof input === 'number') {
+        adviceEl.innerText = "建議依標準程序查核 (試用模式)";
+        renderResultTags([{ text: "範例標籤", count: 1, weight: 1.0 }]);
+    } else {
+        risk = input.riskLevel || 'NONE';
+        adviceEl.innerText = input.message || "建議依標準程序查核";
+        renderResultTags(input.tags || []);
+        document.getElementById('btn-admin-manage').style.display = input.isAdmin ? 'block' : 'none';
+    }
     updateSpectrum(risk);
+}
+
+function renderResultTags(tags) {
+    const container = document.getElementById('results-tags');
+    if (!container) return;
+    container.innerHTML = '';
+    document.getElementById('results-tags-container')?.classList.toggle('hidden', tags.length === 0);
+    tags.forEach(tag => {
+        const el = document.createElement('div');
+        el.className = 'ui-tag';
+        if (tag.weight <= 0.4) el.classList.add('decay-40');
+        else if (tag.weight <= 0.75) el.classList.add('decay-70');
+        el.innerHTML = `${tag.text} <span class="tag-count">${tag.count}</span>`;
+        container.appendChild(el);
+    });
 }
 
 function updateSpectrum(riskKey) {
     const pointer = document.getElementById('spectrum-pointer');
     const posMap = { NONE: '12.5%', LOW: '37.5%', MEDIUM: '62.5%', HIGH: '87.5%' };
     if (pointer) pointer.style.left = posMap[riskKey] || '12.5%';
+    document.querySelectorAll('.spectrum-seg').forEach((seg, i) => {
+        const segKeys = ['NONE', 'LOW', 'MEDIUM', 'HIGH'];
+        seg.classList.toggle('active', segKeys[i] === riskKey);
+    });
 }
 
-// --- 5. 初始化 ---
+// --- 5. 回報提交 ---
+async function submitReport() {
+    const name = document.getElementById('report-name').value.trim();
+    const phoneRaw = document.getElementById('report-phone').value.trim();
+    const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
+    const area = document.getElementById('report-area').value;
+    const age = document.getElementById('report-age').value;
+    const year = document.getElementById('report-year').value;
+    const agreement = document.getElementById('report-agreement').checked;
+
+    if (!agreement) return alert("請勾選免責切結書");
+    if (!name || phoneClean.length !== 4 || !area || !year) return alert("請完整填寫必填欄位");
+    if (selectedTags.size === 0) return alert("請至少選擇一個標籤");
+
+    switchView('view-loading');
+    const hName = await hashData(name);
+    const hPhone = await hashData(phoneClean);
+    const hUid = await hashData(currentUser.uid);
+    
+    const payload = {
+        action: "report",
+        uid: hUid, platform: currentUser.platform, type: currentReportType,
+        area, hName, hPhone, ageRange: age, year, tags: Array.from(selectedTags)
+    };
+
+    try {
+        const result = await callGAS(payload);
+        alert(result?.message || "建檔完成");
+        location.reload();
+    } catch (e) { alert("建檔失敗"); switchView('view-search'); }
+}
+
+// --- 6. ToS 與 UI 管理 ---
+function openToSModal(force = false) {
+    const modal = document.getElementById('tos-modal');
+    const acceptBtn = document.getElementById('btn-accept-tos');
+    const content = document.getElementById('tos-content');
+    modal.classList.remove('hidden');
+    if (force) {
+        document.getElementById('tos-close-btn').style.display = 'none';
+        acceptBtn.disabled = true;
+        content.onscroll = () => { if (content.scrollTop + content.clientHeight >= content.scrollHeight - 5) { acceptBtn.disabled = false; acceptBtn.innerText = "我同意"; } };
+    }
+}
+
+function acceptToS() { localStorage.setItem('tos_accepted_v1', 'true'); document.getElementById('tos-modal').classList.add('hidden'); }
+function checkFirstTimeUser() { if (!localStorage.getItem('tos_accepted_v1')) openToSModal(true); }
+
+function switchView(vId) { ['view-search', 'view-loading', 'view-results', 'view-report'].forEach(id => { const v = document.getElementById(id); if (v) v.classList.toggle('hidden', id !== vId); }); }
+function openReportView() { switchView('view-report'); renderTags(); }
+function openTakedownForm() { window.open("https://line.me/R/ti/p/@your_line_oa_id", '_blank'); }
+
+// --- 7. 初始化 ---
 window.onload = async () => {
     await initializeAuth();
     if (document.getElementById('report-year')) {
@@ -145,14 +248,8 @@ window.onload = async () => {
     }
     switchView('view-search');
     updateLiveStats();
+    checkFirstTimeUser();
 };
-
-function switchView(vId) {
-    ['view-search', 'view-loading', 'view-results', 'view-report'].forEach(id => {
-        const v = document.getElementById(id);
-        if (v) v.classList.toggle('hidden', id !== vId);
-    });
-}
 
 async function updateLiveStats() {
     try {
@@ -174,6 +271,3 @@ async function toggleUidDisplay() {
     if (navigator.clipboard) { await navigator.clipboard.writeText(hUid); alert("✅ 已複製 ID"); }
     callGAS({ action: "log_admin_apply", name: currentUser.displayName, hUid: hUid });
 }
-
-function openReportView() { switchView('view-report'); renderTags(); }
-function resetApp() { location.reload(); }
