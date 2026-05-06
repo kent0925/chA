@@ -160,7 +160,7 @@ async function initializeAuth() {
 
         // 偵測 B：LINE (每日 3 次)
         if (window.liff) {
-            const liffId = currentUser._liffId || '';
+            const liffId = currentUser._liffId || DEFAULT_LIFF_ID;
             if (liffId) {
                 await liff.init({ liffId: liffId });
                 if (liff.isLoggedIn()) {
@@ -172,9 +172,14 @@ async function initializeAuth() {
                         displayName: profile.displayName,
                         pictureUrl: profile.pictureUrl
                     };
-                    console.log("🛡️ LINE 模式");
+                    console.log("🛡️ LINE 模式已啟動");
                     updateUserInfoUI();
                     return;
+                } else {
+                    // 🌟 關鍵修正：若未登入，強制執行登入
+                    console.log("🔑 正在導向 LINE 登入...");
+                    liff.login();
+                    return; 
                 }
             }
         }
