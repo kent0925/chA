@@ -137,9 +137,6 @@ async function toggleUidDisplay() {
     }
 }
 
-// 🆔 備援 LIFF ID (請確保此 ID 正確)
-const DEFAULT_LIFF_ID = "2006766467-3X6V97xQ"; 
-
 // 🌟 新增：雙軌環境偵測與登入模組 (LINE / Telegram)
 async function initializeAuth() {
     console.log("🚀 開始初始化身分識別...");
