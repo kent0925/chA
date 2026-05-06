@@ -1,6 +1,5 @@
 // --- 0. 核心安全配置 ---
-// 【第一層防護鹽】：避免明文傳輸並初步去識別化 (儲存在前端 JS)
-const PUBLIC_SALT = "TrU$t_Sca1e_8xP@qL9!mZ";
+const SYSTEM_SALT = "TrU$t_Sca1e_8xP@qL9!mZ";
 
 // 🔗 GAS Web App 部署 URL（部署後請替換為實際 URL）
 // 這是前端唯一需要硬編碼的設定值，其他設定皆存放於 GAS 指令碼屬性
@@ -47,11 +46,10 @@ let currentUser = {
     _liffId: ''
 };
 
-// --- 1. 安全模組：單向雜湊 (SHA-256) ---
-// 第一層加密：於本地端結合 PUBLIC_SALT 進行雜湊
+// --- 1. 安全模組：加鹽雜湊 (SHA-256) ---
 async function hashData(text) {
     if (!text) return "";
-    const saltedText = text + PUBLIC_SALT;
+    const saltedText = text + SYSTEM_SALT;
     const msgBuffer = new TextEncoder().encode(saltedText);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -305,10 +303,11 @@ async function handleSearch() {
     switchView('view-loading');
     const hName = await hashData(name);
     const hPhone = phoneClean ? await hashData(phoneClean) : "";
+    const hUid = await hashData(currentUser.uid);
 
     const payload = {
         action: "search",
-        uid: currentUser.uid,
+        uid: hUid,
         platform: currentUser.platform,
         hName,
         hPhone,
@@ -331,6 +330,13 @@ async function handleSearch() {
             return;
         }
         switchView('view-results');
+
+        // 🔒 權限檢查：若是管理員，顯示下架工具按鈕
+        const adminBtn = document.getElementById('btn-admin-manage');
+        if (adminBtn) {
+            adminBtn.style.display = result.isAdmin ? "block" : "none";
+        }
+
         updateLiveStats(); // 搜尋後也同步一次數據
     } catch (err) {
         console.error('搜尋 API 呼叫失敗:', err);
@@ -569,10 +575,11 @@ async function submitReport() {
 
     const hName = await hashData(name);
     const hPhone = await hashData(phoneClean);
+    const hUid = await hashData(currentUser.uid);
 
     const payload = {
         action: "report",
-        uid: currentUser.uid,
+        uid: hUid,
         platform: currentUser.platform,
         type: currentReportType,
         area: area,
@@ -742,7 +749,136 @@ function generateYearOptions() {
     yearSelect.add(new Option(`${twYear - 4}年以前`, `${twYear - 4}以前`));
 }
 
-// （已移除 formatJID 函式）
+// ============================================================
+//  ⚙️ 管理員專用函式
+// ============================================================
+
+/**
+ * 🔧 切換 UID 顯示並向伺服器獲取管理員代碼
+ */
+async function toggleUidDisplay() {
+    const uidEl = document.getElementById('display-uid');
+    if (!uidEl || !currentUser.uid) return;
+
+    if (uidEl.innerText !== "●●●●●●●●") {
+        uidEl.innerText = "●●●●●●●●";
+        return;
+    }
+
+    uidEl.innerText = "取得中...";
+    
+    try {
+        const hUid = await hashData(currentUser.uid);
+        const payload = {
+            action: "get_admin_code",
+            uid: hUid
+        };
+        const result = await callGAS(payload);
+        if (result && result.adminCode) {
+            uidEl.innerText = result.adminCode;
+            console.log("🔑 管理員配置代碼已獲取，請填入 GAS 指令碼屬性 ADMIN_UIDS 中。");
+        } else {
+            uidEl.innerText = hUid.substring(0, 8) + "...";
+        }
+    } catch (e) {
+        uidEl.innerText = "獲取失敗";
+    }
+}
+
+/**
+ * 管理員搜尋匹配紀錄
+ */
+async function adminSearchRecords() {
+    const name = document.getElementById('adm-name').value.trim();
+    const phoneRaw = document.getElementById('adm-phone').value.trim();
+    const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
+
+    if (!name) return alert("請輸入姓名");
+
+    switchView('view-loading');
+
+    try {
+        const hName = await hashData(name);
+        const hPhone = phoneClean ? await hashData(phoneClean) : "";
+        const hUid = await hashData(currentUser.uid);
+
+        const payload = {
+            action: "admin_search",
+            uid: hUid,
+            hName,
+            hPhone
+        };
+
+        const result = await callGAS(payload);
+        switchView('view-admin-tool');
+
+        if (result && result.status === "ok") {
+            renderAdminResults(result.records);
+        } else {
+            alert(result.message || "搜尋失敗或無權限");
+        }
+    } catch (e) {
+        alert("管理員連線錯誤");
+        switchView('view-admin-tool');
+    }
+}
+
+/**
+ * 渲染管理員搜尋結果
+ */
+function renderAdminResults(records) {
+    const area = document.getElementById('adm-results-area');
+    const list = document.getElementById('adm-results-list');
+    if (!area || !list) return;
+
+    area.style.display = 'block';
+    list.innerHTML = '';
+
+    if (!records || records.length === 0) {
+        list.innerHTML = '<p style="text-align:center; color:#999;">查無任何紀錄</p>';
+        return;
+    }
+
+    records.forEach(rec => {
+        const div = document.createElement('div');
+        div.className = 'adm-record-item';
+        div.innerHTML = `
+            <small>ID: ${rec.id} | 時間: ${rec.date} | 地區: ${rec.area}</small>
+            <div style="margin-bottom:8px;">
+                <b>標籤:</b> ${JSON.parse(rec.tags).join(', ')}
+            </div>
+            <button class="btn-small-outline" style="color:#e74c3c; border-color:#ff7675;" 
+                onclick="adminTakedown('${rec.id}')">🚫 立即下架</button>
+        `;
+        list.appendChild(div);
+    });
+}
+
+/**
+ * 執行下架
+ */
+async function adminTakedown(recordId) {
+    if (!confirm(`確定要下架 ID: ${recordId} 的紀錄嗎？下架後前端將無法查詢。`)) return;
+
+    try {
+        const hUid = await hashData(currentUser.uid);
+        const payload = {
+            action: "admin_takedown",
+            uid: hUid,
+            recordId: recordId
+        };
+
+        const result = await callGAS(payload);
+        if (result && result.status === "ok") {
+            alert("下架成功！");
+            adminSearchRecords(); // 重新整理清單
+        } else {
+            alert(result.message || "下架失敗");
+        }
+    } catch (e) {
+        alert("下架連線錯誤");
+    }
+}
 
 // --- 9. 初始化 ---
 window.onload = async () => {

@@ -277,6 +277,45 @@ button:active {
 }
 
 /* ============================================================
+   管理員/開發者專用樣式
+   ============================================================ */
+.admin-identity-bar {
+    text-align: center;
+    font-size: 10px;
+    color: #bdc3c7;
+    margin-top: -10px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    background: rgba(241, 242, 246, 0.5);
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    word-break: break-all;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.admin-identity-bar:hover {
+    color: #7f8c8d;
+    background: rgba(241, 242, 246, 0.8);
+}
+
+.adm-record-item {
+    padding: 12px;
+    background: #fcfcfc;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.adm-record-item small {
+    display: block;
+    color: #999;
+    margin-bottom: 5px;
+}
+
+/* ============================================================
    分隔線
    ============================================================ */
 .divider {
