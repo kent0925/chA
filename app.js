@@ -1,13 +1,14 @@
 // --- 0. 核心安全配置 ---
-const SYSTEM_SALT = "TrU$t_Sca1e_8xP@qL9!mZ";
+// 【第一層防護鹽】：避免明文傳輸並初步去識別化 (儲存在前端 JS)
+const PUBLIC_SALT = "TrU$t_Sca1e_8xP@qL9!mZ";
 
 // 🔗 GAS Web App 部署 URL（部署後請替換為實際 URL）
 // 這是前端唯一需要硬編碼的設定值，其他設定皆存放於 GAS 指令碼屬性
-const GAS_API_URL = "YOUR_GAS_WEB_APP_URL_HERE";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw0dAVQ2HOQDvJKNBpj0FT1HJIPW6GLCdJkye3419ZMi2lzFqTUExD8oHdvLG4H_pKq/exec";
 
 // --- 0.5 通用 API 呼叫函式 ---
 async function callGAS(payload) {
-    if (!GAS_API_URL || GAS_API_URL === "YOUR_GAS_WEB_APP_URL_HERE") {
+    if (!GAS_API_URL || GAS_API_URL === "https://script.google.com/macros/s/AKfycbw0dAVQ2HOQDvJKNBpj0FT1HJIPW6GLCdJkye3419ZMi2lzFqTUExD8oHdvLG4H_pKq/exec") {
         console.warn("⚠️ GAS_API_URL 尚未配置，使用 Demo 模式");
         return null;
     }
@@ -46,10 +47,11 @@ let currentUser = {
     _liffId: ''
 };
 
-// --- 1. 安全模組：加鹽雜湊 (SHA-256) ---
+// --- 1. 安全模組：單向雜湊 (SHA-256) ---
+// 第一層加密：於本地端結合 PUBLIC_SALT 進行雜湊
 async function hashData(text) {
     if (!text) return "";
-    const saltedText = text + SYSTEM_SALT;
+    const saltedText = text + PUBLIC_SALT;
     const msgBuffer = new TextEncoder().encode(saltedText);
     const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -291,6 +293,7 @@ async function handleSearch() {
     // 💡 CIO 提醒：搜尋功能不分區，因此將 area 相關變數與阻擋邏輯移除
     // 若你有新增年齡欄位 (in-age) 作為輔助，可保留讀取
     const ageRange = document.getElementById('in-age') ? document.getElementById('in-age').value : "";
+    const gender = document.getElementById('in-gender') ? document.getElementById('in-gender').value : "";
 
     const phoneRaw = document.getElementById('in-phone').value;
     // 🛡️ 修正：使用 slice(-4) 精準擷取「末四碼」
@@ -309,7 +312,8 @@ async function handleSearch() {
         platform: currentUser.platform,
         hName,
         hPhone,
-        ageRange
+        ageRange,
+        gender
     };
 
     console.log("🚀 [搜尋 Payload]:", payload);
@@ -447,7 +451,7 @@ function renderResultTags(tags) {
     tags.forEach(tag => {
         const tagEl = document.createElement('div');
         tagEl.className = 'ui-tag';
-        
+
         // 歷史衰退視覺邏輯 (精細 4 層級)
         if (tag.weight <= 0.1) tagEl.classList.add('decay-10');
         else if (tag.weight <= 0.4) tagEl.classList.add('decay-40');
@@ -457,7 +461,7 @@ function renderResultTags(tags) {
             ${tag.text}
             <span class="tag-count">${tag.count}</span>
         `;
-        
+
         container.appendChild(tagEl);
     });
 }
@@ -534,6 +538,7 @@ async function submitReport() {
     const area = document.getElementById('report-area').value;
     const name = document.getElementById('report-name').value.trim();
     const age = document.getElementById('report-age').value;
+    const gender = document.getElementById('report-gender').value;
     const phoneRaw = document.getElementById('report-phone').value;
     const year = document.getElementById('report-year').value;
     const isAgreed = document.getElementById('report-agreement').checked;
@@ -574,6 +579,7 @@ async function submitReport() {
         hName,
         hPhone,
         ageRange: age,
+        gender: gender,
         year: year,
         specificData: specificData,
         tags: Array.from(selectedTags),
@@ -643,23 +649,20 @@ function resetApp() {
     switchView('view-search');
 
     // 清空搜尋頁表單
-    const inName = document.getElementById('in-name');
-    const inAge = document.getElementById('in-age');
-    const inPhone = document.getElementById('in-phone');
-    if (inName) inName.value = '';
-    if (inAge) inAge.selectedIndex = 0;
-    if (inPhone) inPhone.value = '';
+    if (document.getElementById('in-name')) document.getElementById('in-name').value = '';
+    if (document.getElementById('in-phone')) document.getElementById('in-phone').value = '';
+    if (document.getElementById('in-age')) document.getElementById('in-age').selectedIndex = 0;
+    if (document.getElementById('in-gender')) document.getElementById('in-gender').selectedIndex = 0;
 
     // 清空回報頁表單
-    const reportName = document.getElementById('report-name');
-    const reportPhone = document.getElementById('report-phone');
+    if (document.getElementById('report-name')) document.getElementById('report-name').value = '';
+    if (document.getElementById('report-phone')) document.getElementById('report-phone').value = '';
+    if (document.getElementById('report-age')) document.getElementById('report-age').selectedIndex = 0;
+    if (document.getElementById('report-gender')) document.getElementById('report-gender').selectedIndex = 0;
     const reportArea = document.getElementById('report-area');
-    const reportAge = document.getElementById('report-age');
     const reportYear = document.getElementById('report-year');
     const agreement = document.getElementById('report-agreement');
 
-    if (reportName) reportName.value = '';
-    if (reportPhone) reportPhone.value = '';
     if (reportArea) reportArea.selectedIndex = 0;
     if (reportAge) reportAge.selectedIndex = 0;
     if (reportYear) reportYear.selectedIndex = 0;
