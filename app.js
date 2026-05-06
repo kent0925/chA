@@ -9,12 +9,9 @@ const DEFAULT_LIFF_ID = "2006766467-3X6V97xQ";
 
 // --- 0.5 通用 API 呼叫函式 ---
 async function callGAS(payload) {
-    // 檢查是否仍在使用 Demo URL
     const isDemoUrl = !GAS_API_URL || GAS_API_URL.includes("AKfycbw0dAVQ2HOQDvJKNBpj0FT1HJIPW6GLCdJkye3419ZMi2lzFqTUExD8oHdvLG4H_pKq");
-    
     if (isDemoUrl) {
-        console.warn("⚠️ 偵測到您尚未在 app.js 第一行更換為您自己的 GAS URL。");
-        // 為了讓使用者能測試 ID 獲取，此處不直接 return null，而是嘗試發送
+        console.warn("⚠️ 目前仍在使用範例 URL，連線可能不穩定。");
     }
 
     // 建立逾時控制 (10秒)
@@ -140,10 +137,15 @@ async function toggleUidDisplay() {
     }
 }
 
+// 🆔 備援 LIFF ID (請確保此 ID 正確)
+const DEFAULT_LIFF_ID = "2006766467-3X6V97xQ"; 
+
 // 🌟 新增：雙軌環境偵測與登入模組 (LINE / Telegram)
 async function initializeAuth() {
+    console.log("🚀 開始初始化身分識別...");
+    
     try {
-        // 偵測 A：Telegram (每日 1 次)
+        // 偵測 A：Telegram
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
             const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
             currentUser = {
@@ -153,16 +155,19 @@ async function initializeAuth() {
                 displayName: tgUser.first_name || 'TG User',
                 pictureUrl: tgUser.photo_url || ''
             };
-            console.log("🛡️ Telegram 模式");
+            console.log("🛡️ 進入 Telegram 模式");
             updateUserInfoUI();
             return;
         }
 
-        // 偵測 B：LINE (每日 3 次)
+        // 偵測 B：LINE
         if (window.liff) {
-            const liffId = currentUser._liffId || DEFAULT_LIFF_ID;
-            if (liffId) {
-                await liff.init({ liffId: liffId });
+            const targetLiffId = DEFAULT_LIFF_ID;
+            console.log("📡 [電腦版診斷] 正在初始化 LIFF:", targetLiffId);
+            
+            try {
+                await liff.init({ liffId: targetLiffId });
+                
                 if (liff.isLoggedIn()) {
                     const profile = await liff.getProfile();
                     currentUser = {
@@ -172,25 +177,28 @@ async function initializeAuth() {
                         displayName: profile.displayName,
                         pictureUrl: profile.pictureUrl
                     };
-                    console.log("🛡️ LINE 模式已啟動");
+                    console.log("🛡️ LINE 身分已驗證:", currentUser.displayName);
                     updateUserInfoUI();
                     return;
                 } else {
-                    // 🌟 關鍵修正：若未登入，強制執行登入
-                    console.log("🔑 正在導向 LINE 登入...");
+                    // 在電腦版，若未登入則主動要求登入
+                    console.log("🔑 [電腦版] 尚未登入，準備導向 LINE 驗證頁面...");
                     liff.login();
-                    return; 
+                    return;
                 }
+            } catch (initErr) {
+                console.error("❌ LIFF 初始化失敗 (請確認是否在 HTTPS 環境下開啟):", initErr);
             }
         }
 
-        // 偵測 C：網頁訪客 (試用版)
+        // 偵測 C：網頁訪客 (前兩者皆失敗)
+        console.log("🛑 降級至訪客測試模式");
         currentUser = { uid: 'TRIAL_USER', platform: 'WEB', quota: 0, displayName: '訪客測試 (WEB)', pictureUrl: '' };
-        console.log("🛑 訪客模式");
         updateUserInfoUI();
 
     } catch (error) {
-        console.error("Auth Init Error:", error);
+        console.error("❌ 身分識別發生嚴重錯誤:", error);
+        // 即使出錯也嘗試顯示 UI
         updateUserInfoUI();
     }
 }
