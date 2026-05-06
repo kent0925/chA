@@ -15,7 +15,7 @@ async function callGAS(payload) {
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         return await resp.json();
     } catch (err) {
-        console.warn("連線異常:", err.message);
+        console.warn("📡 GAS 連線異常:", err.message);
         return null;
     }
 }
@@ -70,30 +70,47 @@ function updateUserInfoUI() {
     if (b) b.classList.remove('hidden');
 }
 
-// --- 3. 完整標籤庫 (Version 2.8) ---
+// --- 3. 標籤庫 (與 Code.gs 100% 對接) ---
 const TAG_LIBRARY = {
     tenant: [
-        { text: "✨ 屋況維持極佳", impact: "good" }, { text: "🛠️ 擅自更動裝修", impact: "bad" },
-        { text: "🤫 維持鄰里安寧", impact: "good" }, { text: "📦 堆置雜物爭議", impact: "bad" },
-        { text: "🛡️ 設備妥善維護", impact: "good" }, { text: "🏚️ 設備毀損紀錄", impact: "bad" },
-        { text: "📱 溝通聯繫順暢", impact: "good" }, { text: "🔊 鄰里噪音投訴", impact: "bad" },
-        { text: "🧹 空間整潔清空", impact: "good" }, { text: "🚬 菸寵異味殘留", impact: "bad" },
-        { text: "💰 準時給付租金", impact: "good" }, { text: "💸 租金給付遲延", impact: "bad" }
+        { text: "✨ 屋況維持極佳", impact: "good" },
+        { text: "🛠️ 擅自更動裝修", impact: "bad" },
+        { text: "🤫 維持鄰里安寧", impact: "good" },
+        { text: "📦 堆置雜物爭議", impact: "bad" },
+        { text: "🛡️ 設備妥善維護", impact: "good" },
+        { text: "🏚️ 設備毀損紀錄", impact: "bad" },
+        { text: "📱 溝通聯繫順暢", impact: "good" },
+        { text: "🔊 鄰里噪音投訴", impact: "bad" },
+        { text: "🧹 空間整潔清空", impact: "good" },
+        { text: "🚬 菸寵異味殘留", impact: "bad" },
+        { text: "💰 準時給付租金", impact: "good" },
+        { text: "💸 租金給付遲延", impact: "bad" }
     ],
     landlord: [
-        { text: "💸 押金如期返還", impact: "good" }, { text: "🔍 押金扣留爭議", impact: "bad" },
-        { text: "⚡ 修繕處理迅速", impact: "good" }, { text: "⏳ 修繕推託延遲", impact: "bad" },
-        { text: "🏠 尊重房客隱私", impact: "good" }, { text: "👣 未經授權入內", impact: "bad" },
-        { text: "💧 台水台電計費", impact: "good" }, { text: "📈 超收水電費用", impact: "bad" },
-        { text: "📜 契約條款透明", impact: "good" }, { text: "⚖️ 契約條款嚴苛", impact: "bad" },
-        { text: "👼 配合申報稅補", impact: "good" }, { text: "🚫 拒絕租金補貼", impact: "bad" },
-        { text: "🤝 溝通明理友善", impact: "good" }, { text: "💢 情緒勒索施壓", impact: "bad" }
+        { text: "💸 押金如期返還", impact: "good" },
+        { text: "🔍 押金扣留爭議", impact: "bad" },
+        { text: "⚡ 修繕處理迅速", impact: "good" },
+        { text: "⏳ 修繕推託延遲", impact: "bad" },
+        { text: "🏠 尊重房客隱私", impact: "good" },
+        { text: "👣 未經授權入內", impact: "bad" },
+        { text: "💧 台水台電計費", impact: "good" },
+        { text: "📈 超收水電費用", impact: "bad" },
+        { text: "📜 契約條款透明", impact: "good" },
+        { text: "⚖️ 契約條款嚴苛", impact: "bad" },
+        { text: "👼 配合申報稅補", impact: "good" },
+        { text: "🚫 拒絕租金補貼", impact: "bad" },
+        { text: "🤝 溝通明理友善", impact: "good" },
+        { text: "💢 情緒勒索施壓", impact: "bad" }
     ],
     student: [
-        { text: "🎓 專注學業單純", impact: "good" }, { text: "🎉 帶人開趴喧嘩", impact: "bad" },
-        { text: "🧹 宿舍維持整潔", impact: "good" }, { text: "🛵 機車違規停放", impact: "bad" },
-        { text: "🤝 家長理性溝通", impact: "good" }, { text: "🛡️ 家長過度介入", impact: "bad" },
-        { text: "💰 租金按時繳納", impact: "good" }, { text: "💸 寒暑假欠繳/空窗", impact: "bad" }
+        { text: "🎓 專注學業單純", impact: "good" },
+        { text: "🎉 帶人開趴喧嘩", impact: "bad" },
+        { text: "🧹 宿舍維持整潔", impact: "good" },
+        { text: "🛵 機車違規停放", impact: "bad" },
+        { text: "🤝 家長理性溝通", impact: "good" },
+        { text: "🛡️ 家長過度介入", impact: "bad" },
+        { text: "💰 租金按時繳納", impact: "good" },
+        { text: "💸 寒暑假欠繳/空窗", impact: "bad" }
     ]
 };
 let selectedTags = new Set();
@@ -125,18 +142,21 @@ function renderTags() {
     });
 }
 
-// --- 4. 搜尋與結果渲染 ---
+// --- 4. 搜尋與結果渲染 (補全參數) ---
 async function handleSearch() {
     const name = document.getElementById('in-name').value.trim();
     const phoneRaw = document.getElementById('in-phone').value.trim();
     const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
+    const gender = document.getElementById('in-gender')?.value || "";
+    const ageRange = document.getElementById('in-age')?.value || "";
+
     if (!name) return alert("請輸入姓名");
     switchView('view-loading');
     const hName = await hashData(name);
     const hPhone = phoneClean ? await hashData(phoneClean) : "";
     const hUid = await hashData(currentUser.uid);
     try {
-        const result = await callGAS({ action: "search", uid: hUid, platform: currentUser.platform, hName, hPhone });
+        const result = await callGAS({ action: "search", uid: hUid, platform: currentUser.platform, hName, hPhone, gender, ageRange });
         if (result && result.status === 'ok') { updateResultsUI(result); }
         else { updateResultsUI(95); }
     } catch (e) { updateResultsUI(95); }
@@ -182,17 +202,19 @@ function renderQueryRef() {
     if (refEl) refEl.innerText = `查詢流水號: REF-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 }
 
-// --- 5. 回報提交 ---
+// --- 5. 回報提交 (補全性別欄位) ---
 async function submitReport() {
     const name = document.getElementById('report-name').value.trim();
     const phoneRaw = document.getElementById('report-phone').value.trim();
     const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
     const area = document.getElementById('report-area').value;
+    const age = document.getElementById('report-age').value;
+    const gender = document.getElementById('report-gender').value;
     const year = document.getElementById('report-year').value;
     const agreement = document.getElementById('report-agreement').checked;
 
     if (!agreement) return alert("請勾選切結書");
-    if (!name || phoneClean.length !== 4 || !area || !year) return alert("請完整填寫姓名、電話、區域及年份");
+    if (!name || phoneClean.length !== 4 || !area || !year) return alert("請完整填寫必填欄位");
     if (selectedTags.size === 0) return alert("請至少選擇一個標籤");
 
     switchView('view-loading');
@@ -202,8 +224,7 @@ async function submitReport() {
     
     const payload = {
         action: "report", uid: hUid, platform: currentUser.platform, type: currentReportType,
-        area, hName, hPhone, ageRange: document.getElementById('report-age').value, gender: document.getElementById('report-gender').value,
-        year, tags: Array.from(selectedTags), timestamp: new Date().toISOString()
+        area, hName, hPhone, ageRange: age, gender, year, tags: Array.from(selectedTags), timestamp: new Date().toISOString()
     };
 
     try {
