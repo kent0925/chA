@@ -86,7 +86,7 @@ header p {
     border-radius: 50%;
     background: linear-gradient(135deg, #eee, #ddd);
     border: 2px solid white;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     object-fit: cover;
 }
 
@@ -770,6 +770,7 @@ button {
 .ui-toast.success {
     background: var(--level-green);
 }
+
 /* 結果頁需要 relative 定位供浮水印參照 */
 #view-results {
     position: relative;
@@ -856,4 +857,113 @@ button {
     transform: rotate(-25deg);
     user-select: none;
     letter-spacing: 2px;
+}
+
+/* =========================================
+   🛡️ 服務條款 Modal 樣式
+   ========================================= */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #fff;
+    width: 90%;
+    max-width: 500px;
+    height: 80vh;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #888;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+    line-height: 1.6;
+    color: #444;
+}
+
+.modal-body h3 {
+    font-size: 1rem;
+    color: #2c3e50;
+    margin: 15px 0 5px 0;
+}
+
+.modal-body p {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    text-align: justify;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    background: #f8f9fa;
+}
+
+.modal-footer button {
+    width: 100%;
+}
+
+.modal-footer button:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.text-link {
+    color: #3498db;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.footer-links {
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+
+.footer-links a {
+    color: #888;
+    text-decoration: none;
+    border-bottom: 1px solid #888;
 }

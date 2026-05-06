@@ -9,7 +9,7 @@ const GAS_API_URL = "YOUR_GAS_WEB_APP_URL_HERE";
 async function callGAS(payload) {
     if (!GAS_API_URL || GAS_API_URL === "YOUR_GAS_WEB_APP_URL_HERE") {
         console.warn("⚠️ GAS_API_URL 尚未配置，使用 Demo 模式");
-        return null; 
+        return null;
     }
 
     // 建立逾時控制 (10秒)
@@ -61,9 +61,9 @@ async function initializeAuth() {
         // 偵測 A：Telegram (每日 1 次)
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
             const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
-            currentUser = { 
-                uid: `TG_${tgUser.id}`, 
-                platform: 'TELEGRAM', 
+            currentUser = {
+                uid: `TG_${tgUser.id}`,
+                platform: 'TELEGRAM',
                 quota: 1,
                 displayName: tgUser.first_name || 'TG User',
                 pictureUrl: tgUser.photo_url || ''
@@ -80,9 +80,9 @@ async function initializeAuth() {
                 await liff.init({ liffId: liffId });
                 if (liff.isLoggedIn()) {
                     const profile = await liff.getProfile();
-                    currentUser = { 
-                        uid: `LINE_${profile.userId}`, 
-                        platform: 'LINE', 
+                    currentUser = {
+                        uid: `LINE_${profile.userId}`,
+                        platform: 'LINE',
                         quota: 3,
                         displayName: profile.displayName,
                         pictureUrl: profile.pictureUrl
@@ -116,11 +116,11 @@ function updateUserInfoUI() {
 
     userBar.classList.remove('hidden');
     nameSpan.innerText = currentUser.displayName;
-    
+
     if (currentUser.pictureUrl) {
         avatarImg.src = currentUser.pictureUrl;
     } else {
-        avatarImg.src = "https://www.w3schools.com/howto/img_avatar.png"; 
+        avatarImg.src = "https://www.w3schools.com/howto/img_avatar.png";
     }
 
     let pCount = currentUser.personalCount || 0;
@@ -145,6 +145,80 @@ function switchView(viewId) {
             view.classList.toggle('hidden', id !== viewId);
         }
     });
+}
+
+// --- 2.5 服務條款 (ToS) 管理模組 ---
+let isForceReading = false; // 是否為強制閱讀模式
+
+/** 
+ * 開啟服務條款 Modal
+ * @param {boolean} force - 是否為強制初次閱讀 (不允許關閉直到同意)
+ */
+function openToSModal(force = false) {
+    isForceReading = force;
+    const modal = document.getElementById('tos-modal');
+    const closeBtn = document.getElementById('tos-close-btn');
+    const content = document.getElementById('tos-content');
+    const acceptBtn = document.getElementById('btn-accept-tos');
+
+    modal.classList.remove('hidden');
+
+    if (force) {
+        // 強制閱讀模式：隱藏右上角 X，按鈕需滾動解鎖
+        closeBtn.style.display = 'none';
+        acceptBtn.disabled = true;
+        acceptBtn.innerText = "請向下滑動閱讀完畢以同意條款";
+        acceptBtn.style.display = 'block';
+
+        // 監聽滾動以啟用同意按鈕
+        content.addEventListener('scroll', handleToSScroll);
+        // 如果螢幕夠大，內容不需要滾動，直接解鎖
+        if (content.scrollHeight <= content.clientHeight) {
+            enableAcceptBtn();
+        }
+    } else {
+        // 主動查閱模式：顯示右上角 X，隱藏底部同意按鈕
+        closeBtn.style.display = 'block';
+        acceptBtn.style.display = 'none';
+        content.removeEventListener('scroll', handleToSScroll);
+    }
+}
+
+function handleToSScroll() {
+    const content = document.getElementById('tos-content');
+    // 判斷是否滾動到底部 (容許 10px 誤差)
+    if (content.scrollTop + content.clientHeight >= content.scrollHeight - 10) {
+        enableAcceptBtn();
+    }
+}
+
+function enableAcceptBtn() {
+    const acceptBtn = document.getElementById('btn-accept-tos');
+    acceptBtn.disabled = false;
+    acceptBtn.innerText = "我已詳細閱讀並完全同意";
+}
+
+function closeToSModal() {
+    // 只有在非強制閱讀模式下才允許點擊 X 或背景關閉
+    if (!isForceReading) {
+        document.getElementById('tos-modal').classList.add('hidden');
+    }
+}
+
+function acceptToS() {
+    // 將同意狀態寫入瀏覽器 LocalStorage
+    localStorage.setItem('blindfold_tos_accepted_v1', 'true');
+    document.getElementById('tos-modal').classList.add('hidden');
+    isForceReading = false;
+}
+
+// 檢查是否初次登入
+function checkFirstTimeUser() {
+    const hasAccepted = localStorage.getItem('blindfold_tos_accepted_v1');
+    if (!hasAccepted) {
+        // 未同意過，強制彈出
+        openToSModal(true);
+    }
 }
 
 // --- 3. 雙向評鑑標籤庫資料 (Version 2.8 完整版) ---
@@ -472,10 +546,10 @@ function showToast(message, type = 'info') {
         toast.className = 'ui-toast';
         document.body.appendChild(toast);
     }
-    
+
     toast.innerText = message;
     toast.className = `ui-toast show ${type}`;
-    
+
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3500);
@@ -549,14 +623,14 @@ function openTakedownForm() {
 async function updateLiveStats() {
     const fallback = { userCount: 1204, personalCount: 0 };
     try {
-        const result = await callGAS({ 
+        const result = await callGAS({
             action: "stats",
             uid: currentUser.uid
         });
         const data = (result && result.status === 'ok') ? result : fallback;
         const stUser = document.getElementById('stat-user-num');
         if (stUser) stUser.innerText = (data.userCount || 0).toLocaleString();
-        
+
         // 更新全域使用者狀態中的筆數
         currentUser.personalCount = data.personalCount || 0;
         updateUserInfoUI();
@@ -595,7 +669,6 @@ function generateYearOptions() {
 
 // --- 9. 初始化 ---
 window.onload = async () => {
-    // 先從後端取得設定值（LIFF_ID 等）
     try {
         const config = await callGAS({ action: 'config' });
         if (config && config.status === 'ok') {
@@ -611,4 +684,7 @@ window.onload = async () => {
     switchView('view-search');
     renderTags();
     updateLiveStats();
+
+    // 🌟 執行初次使用者條款檢查 (放置於初始化最後一步)
+    checkFirstTimeUser();
 };
