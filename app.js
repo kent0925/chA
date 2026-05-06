@@ -48,13 +48,66 @@ let currentUser = {
 
 // --- 1. 安全模組：加鹽雜湊 (SHA-256) ---
 // --- 1. 安全模組：標準 SHA-256 (Web Crypto) ---
-async function hashData(text) {
-    if (!text) return "";
-    const saltedText = text + SYSTEM_SALT;
-    const msgBuffer = new TextEncoder().encode(saltedText);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+// --- 1. 安全模組：絕對相容版 SHA-256 (100% 純 JS，不依賴環境) ---
+function hashData(text) {
+    if (!text) return Promise.resolve("");
+    var saltedText = text + SYSTEM_SALT;
+
+    // 🏆 超強相容 SHA-256 引擎
+    var sha256 = function sha256(ascii) {
+        function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); };
+        var mathPow = Math.pow;
+        var maxWord = mathPow(2, 32);
+        var lengthProperty = 'length';
+        var i, j;
+        var result = '';
+        var words = [];
+        var asciiBitLength = ascii[lengthProperty] * 8;
+        var hash = sha256.h = sha256.h || [];
+        var k = sha256.k = sha256.k || [];
+        var primeCounter = k[lengthProperty];
+        var isComposite = {};
+        for (var candidate = 2; primeCounter < 64; candidate++) {
+            if (!isComposite[candidate]) {
+                for (i = 0; i < 313; i += candidate) { isComposite[i] = candidate; }
+                hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+                k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+            }
+        }
+        ascii += '\x80';
+        while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
+        for (i = 0; i < ascii[lengthProperty]; i++) {
+            j = ascii.charCodeAt(i);
+            if (j >> 8) return;
+            words[i >> 2] |= j << ((3 - i) % 4) * 8;
+        }
+        words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
+        words[words[lengthProperty]] = (asciiBitLength | 0);
+        for (j = 0; j < words[lengthProperty]; j += 16) {
+            var w = words.slice(j, j + 16);
+            var oldHash = hash;
+            hash = hash.slice(0, 8);
+            for (i = 0; i < 64; i++) {
+                var i2 = i + j;
+                var w15 = w[i - 15], w2 = w[i - 2];
+                var a = hash[0], e = hash[4];
+                var temp1 = hash[7] + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) + ((e & hash[5]) ^ ((~e) & hash[6])) + k[i] + (w[i] = (i < 16) ? w[i] : (w[i - 16] + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) | 0);
+                var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+                hash = [(temp1 + temp2) | 0].concat(hash);
+                hash[4] = (hash[4] + temp1) | 0;
+            }
+            for (i = 0; i < 8; i++) { hash[i] = (hash[i] + oldHash[i]) | 0; }
+        }
+        for (i = 0; i < 8; i++) {
+            for (j = 3; j + 1; j--) {
+                var b = (hash[i] >> (j * 8)) & 255;
+                result += ((b < 16) ? '0' : '') + b.toString(16);
+            }
+        }
+        return result;
+    };
+
+    return Promise.resolve(sha256(saltedText));
 }
 
 // 🔧 管理員身分識別 (點擊獲取完整加密 ID)
@@ -779,35 +832,27 @@ function generateYearOptions() {
 //  ⚙️ 管理員專用函式
 // ============================================================
 
-// 🔧 管理員身分識別 (純前端計算，點擊即複製)
+// 🔧 管理員身分識別 (顯示完整加密 ID)
 async function toggleUidDisplay() {
     const uidEl = document.getElementById('display-uid');
     if (!uidEl || !currentUser.uid) return;
 
-    // 若已顯示，則切換回隱藏
     if (uidEl.innerText !== "●●●●●●●●") {
         uidEl.innerText = "●●●●●●●●";
         return;
     }
 
     try {
-        // 1. 直接進行前端加密
+        // 使用絕對相容版進行計算
         const hUid = await hashData(currentUser.uid);
-        
-        // 2. 顯示完整代碼
         uidEl.innerText = hUid;
         
-        // 3. 自動複製
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(hUid);
-            showToast("✅ 加密 ID 已複製到剪貼簿", "success");
-        } else {
-            showToast("🔑 請長按選取並複製 ID", "info");
+            showToast("✅ 加密 ID 已複製！", "success");
         }
-        
-    } catch (err) {
-        uidEl.innerText = "識別碼計算中...";
-        console.error("UID Error:", err);
+    } catch (e) {
+        uidEl.innerText = "Error: " + e.message;
     }
 }
 
