@@ -42,7 +42,8 @@ let currentUser = {
     quota: 0,
     displayName: '訪客測試',
     pictureUrl: '',
-    personalCount: 0
+    personalCount: 0,
+    _liffId: ''
 };
 
 // --- 1. 安全模組：加鹽雜湊 (SHA-256) ---
@@ -274,8 +275,9 @@ async function handleSearch() {
     if (currentUser.platform === 'WEB') {
         switchView('view-loading');
         setTimeout(() => {
-            // 試用版固定給予「極高風險」的 Demo，讓訪客知道系統的威力
-            updateResultsUI(99);
+            // 試用版給予 85-99 之間的隨機分數
+            const demoScore = Math.floor(Math.random() * 15) + 85;
+            updateResultsUI(demoScore);
             switchView('view-results');
             // 在結果頁額外提示
             alert("✨ 這是「試用版預覽」。\n若要查詢真實資料庫，請點擊下方按鈕加入 LINE 或 Telegram 官方帳號。");
@@ -373,6 +375,12 @@ function updateResultsUI(input) {
         // 建議文字
         if (adviceEl) adviceEl.innerText = text;
     }
+
+    // 🌟 修正：顯示法律頁腳
+    const legalFooter = document.querySelector('.legal-footer');
+    if (legalFooter) {
+        legalFooter.style.display = 'block';
+    }
 }
 
 // --- 5.5 風險滑軌更新 ---
@@ -414,10 +422,11 @@ function setReportType(type) {
     currentReportType = type;
 
     // 2. 切換按鈕的視覺外觀 (藍色 active 狀態)
-    document.getElementById('btn-report-tenant').classList.remove('active');
-    document.getElementById('btn-report-student').classList.remove('active');
-    document.getElementById('btn-report-landlord').classList.remove('active');
-    document.getElementById(`btn-report-${type}`).classList.add('active');
+    document.querySelectorAll('.identity-switch button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    const targetBtn = document.getElementById(`btn-report-${type}`);
+    if (targetBtn) targetBtn.classList.add('active');
 
     // 3. 動態切換專屬輸入欄位 (隱藏/顯示)
     const fieldsTenant = document.getElementById('fields-tenant');

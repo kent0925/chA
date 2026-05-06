@@ -971,34 +971,32 @@ button {
 /* 確保內容區塊會產生垂直卷軸 */
 #tos-content {
     max-height: 60vh;
-    /* 設定最大高度為視窗高度的 60%，可依需求調整 */
     overflow-y: auto;
-    /* 內容超過時產生垂直卷軸 */
     padding: 15px;
 }
 
 /* 同意按鈕的基礎與「停用」樣式 */
-#agree-btn {
-    padding: 10px 20px;
+#btn-accept-tos {
+    padding: 15px;
     font-size: 16px;
     color: white;
-    background-color: #4CAF50;
-    /* 預設為綠色 */
+    background-color: var(--primary);
     border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
+    border-radius: 8px;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
-#agree-btn:disabled {
-    background-color: #cccccc;
-    /* 停用時變成灰色 */
-    color: #666666;
+#btn-accept-tos:disabled {
+    background-color: #bdc3c7;
+    color: #f8f9fa;
     cursor: not-allowed;
-    /* 滑鼠移過去顯示禁止符號 */
+    transform: none;
+    box-shadow: none;
 }
 
 /* 啟用後的按鈕滑鼠效果 */
-#agree-btn:not(:disabled):hover {
-    background-color: #45a049;
+#btn-accept-tos:not(:disabled):hover {
+    background-color: #003d66;
     cursor: pointer;
+    transform: translateY(-2px);
 }
