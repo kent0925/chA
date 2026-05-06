@@ -168,7 +168,7 @@ header p {
    表單元素（input / select）
    針對 iOS 優化：字體 >= 16px 防止自動縮放，移除原生樣式
    ============================================================ */
-input,
+input:not([type="checkbox"]),
 select {
     width: 100%;
     max-width: 100%;
