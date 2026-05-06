@@ -22,7 +22,7 @@ async function callGAS(payload) {
 
 let currentUser = { uid: 'GUEST', platform: 'WEB', displayName: '訪客測試', pictureUrl: '', personalCount: 0 };
 
-// --- 1. 加密引擎 (SHA-256 純 JS 版) ---
+// --- 1. 加密引擎 ---
 function hashData(text) {
     if (!text) return Promise.resolve("");
     var saltedText = text + SYSTEM_SALT;
@@ -59,22 +59,18 @@ async function initializeAuth() {
                 currentUser = { uid: `LINE_${profile.userId}`, platform: 'LINE', displayName: profile.displayName, pictureUrl: profile.pictureUrl };
             } else { liff.login(); return; }
         }
-    } catch (e) {
-        console.error("Auth Error:", e.message);
-        currentUser = { uid: 'GUEST_DEFAULT', platform: 'WEB', displayName: '訪客測試' };
-    }
+    } catch (e) { console.error("Auth Error:", e.message); currentUser = { uid: 'GUEST_DEFAULT', platform: 'WEB', displayName: '訪客測試' }; }
     updateUserInfoUI();
 }
 
 function updateUserInfoUI() {
-    const n = document.getElementById('user-name'), a = document.getElementById('user-avatar'), b = document.getElementById('user-bar'), q = document.getElementById('user-quota');
+    const n = document.getElementById('user-name'), a = document.getElementById('user-avatar'), b = document.getElementById('user-bar');
     if (n) n.innerText = currentUser.displayName;
     if (a && currentUser.pictureUrl) a.src = currentUser.pictureUrl;
     if (b) b.classList.remove('hidden');
-    if (q) q.innerText = currentUser.platform === 'LINE' ? "⭐ LINE 認證用戶" : "☁️ 網頁試用模式";
 }
 
-// --- 3. 標籤庫 ---
+// --- 3. 完整標籤庫 (Version 2.8) ---
 const TAG_LIBRARY = {
     tenant: [
         { text: "✨ 屋況維持極佳", impact: "good" }, { text: "🛠️ 擅自更動裝修", impact: "bad" },
@@ -129,7 +125,7 @@ function renderTags() {
     });
 }
 
-// --- 4. 搜尋與結果 ---
+// --- 4. 搜尋與結果渲染 ---
 async function handleSearch() {
     const name = document.getElementById('in-name').value.trim();
     const phoneRaw = document.getElementById('in-phone').value.trim();
@@ -150,16 +146,10 @@ async function handleSearch() {
 function updateResultsUI(input) {
     const adviceEl = document.getElementById('risk-advice');
     let risk = 'NONE';
-    if (typeof input === 'number') {
-        adviceEl.innerText = "建議依標準程序查核 (試用模式)";
-        renderResultTags([{ text: "範例標籤", count: 1, weight: 1.0 }]);
-    } else {
-        risk = input.riskLevel || 'NONE';
-        adviceEl.innerText = input.message || "建議依標準程序查核";
-        renderResultTags(input.tags || []);
-        document.getElementById('btn-admin-manage').style.display = input.isAdmin ? 'block' : 'none';
-    }
+    if (typeof input === 'number') { adviceEl.innerText = "建議依標準程序查核 (試用模式)"; renderResultTags([{ text: "範例數據", count: 1, weight: 1.0 }]); }
+    else { risk = input.riskLevel || 'NONE'; adviceEl.innerText = input.message || "建議依標準程序查核"; renderResultTags(input.tags || []); document.getElementById('btn-admin-manage').style.display = input.isAdmin ? 'block' : 'none'; }
     updateSpectrum(risk);
+    renderQueryRef();
 }
 
 function renderResultTags(tags) {
@@ -187,18 +177,22 @@ function updateSpectrum(riskKey) {
     });
 }
 
+function renderQueryRef() {
+    const refEl = document.getElementById('query-ref');
+    if (refEl) refEl.innerText = `查詢流水號: REF-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+}
+
 // --- 5. 回報提交 ---
 async function submitReport() {
     const name = document.getElementById('report-name').value.trim();
     const phoneRaw = document.getElementById('report-phone').value.trim();
     const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
     const area = document.getElementById('report-area').value;
-    const age = document.getElementById('report-age').value;
     const year = document.getElementById('report-year').value;
     const agreement = document.getElementById('report-agreement').checked;
 
-    if (!agreement) return alert("請勾選免責切結書");
-    if (!name || phoneClean.length !== 4 || !area || !year) return alert("請完整填寫必填欄位");
+    if (!agreement) return alert("請勾選切結書");
+    if (!name || phoneClean.length !== 4 || !area || !year) return alert("請完整填寫姓名、電話、區域及年份");
     if (selectedTags.size === 0) return alert("請至少選擇一個標籤");
 
     switchView('view-loading');
@@ -207,16 +201,16 @@ async function submitReport() {
     const hUid = await hashData(currentUser.uid);
     
     const payload = {
-        action: "report",
-        uid: hUid, platform: currentUser.platform, type: currentReportType,
-        area, hName, hPhone, ageRange: age, year, tags: Array.from(selectedTags)
+        action: "report", uid: hUid, platform: currentUser.platform, type: currentReportType,
+        area, hName, hPhone, ageRange: document.getElementById('report-age').value, gender: document.getElementById('report-gender').value,
+        year, tags: Array.from(selectedTags), timestamp: new Date().toISOString()
     };
 
     try {
         const result = await callGAS(payload);
         alert(result?.message || "建檔完成");
         location.reload();
-    } catch (e) { alert("建檔失敗"); switchView('view-search'); }
+    } catch (e) { alert("建檔失敗"); switchView('view-report'); }
 }
 
 // --- 6. ToS 與 UI 管理 ---
@@ -231,10 +225,8 @@ function openToSModal(force = false) {
         content.onscroll = () => { if (content.scrollTop + content.clientHeight >= content.scrollHeight - 5) { acceptBtn.disabled = false; acceptBtn.innerText = "我同意"; } };
     }
 }
-
-function acceptToS() { localStorage.setItem('tos_accepted_v1', 'true'); document.getElementById('tos-modal').classList.add('hidden'); }
-function checkFirstTimeUser() { if (!localStorage.getItem('tos_accepted_v1')) openToSModal(true); }
-
+function acceptToS() { localStorage.setItem('tos_v1', 'true'); document.getElementById('tos-modal').classList.add('hidden'); }
+function checkFirstTimeUser() { if (!localStorage.getItem('tos_v1')) openToSModal(true); }
 function switchView(vId) { ['view-search', 'view-loading', 'view-results', 'view-report'].forEach(id => { const v = document.getElementById(id); if (v) v.classList.toggle('hidden', id !== vId); }); }
 function openReportView() { switchView('view-report'); renderTags(); }
 function openTakedownForm() { window.open("https://line.me/R/ti/p/@your_line_oa_id", '_blank'); }
