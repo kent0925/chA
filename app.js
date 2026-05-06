@@ -776,10 +776,18 @@ async function toggleUidDisplay() {
         const result = await callGAS(payload);
         if (result && result.status === "ok" && result.adminCode) {
             uidEl.innerText = result.adminCode;
+            
+            // 📋 自動複製到剪貼簿
+            await navigator.clipboard.writeText(result.adminCode);
+            showToast("✅ 配置代碼已複製到剪貼簿！", "success");
+            
             console.log("🔑 [成功] 管理員配置代碼:", result.adminCode);
         } else {
             // 若失敗，顯示較長的第一層雜湊作為參考
-            uidEl.innerText = "本地代碼: " + hUid.substring(0, 16) + "...";
+            const fallbackCode = hUid.substring(0, 16);
+            uidEl.innerText = "本地代碼: " + fallbackCode + "...";
+            await navigator.clipboard.writeText(fallbackCode);
+            showToast("⚠️ 已複製本地代碼，請確認 GAS 連線", "warning");
             console.warn("⚠️ 無法從後端獲取雙重雜湊代碼，請確認 GAS 已重新部署且 URL 正確。");
         }
     } catch (e) {
