@@ -4,24 +4,24 @@
    全域設計令牌 (深色模式 + 玻璃擬物化)
    ============================================================ */
 :root {
-    --primary: #3b82f6;       /* 現代藍 */
-    --primary-hover: #2563eb;
-    --secondary: #f59e0b;     /* 琥珀色 */
-    --secondary-hover: #d97706;
-    --text: #f8fafc;          /* 亮灰白 */
-    --text-muted: #94a3b8;    /* 暗灰 */
-    --bg-dark: #0f172a;       /* 深藍黑 */
-    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    --card-bg: rgba(30, 41, 59, 0.7); /* 玻璃背景 */
-    --card-border: rgba(255, 255, 255, 0.1);
-    --input-bg: rgba(15, 23, 42, 0.6);
-    --input-border: rgba(255, 255, 255, 0.2);
+    --primary: #2563eb;       /* 現代藍 (稍加深適應白底) */
+    --primary-hover: #1d4ed8;
+    --secondary: #eab308;     /* 琥珀色 */
+    --secondary-hover: #ca8a04;
+    --text: #1e293b;          /* 主文字：深灰黑 */
+    --text-muted: #64748b;    /* 次要文字：中灰 */
+    --bg-dark: #f8fafc;       /* 亮色背景底色 */
+    --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); /* 亮灰白漸層 */
+    --card-bg: rgba(255, 255, 255, 0.85); /* 白色玻璃背景 */
+    --card-border: rgba(0, 0, 0, 0.05);   /* 微灰邊框 */
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --input-border: rgba(0, 0, 0, 0.15);
     --danger: #ef4444;
     --level-green: #10b981;
     --level-yellow: #f59e0b;
     --level-orange: #f97316;
     --level-red: #ef4444;
-    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08); /* 柔和淺陰影 */
 }
 
 /* ============================================================

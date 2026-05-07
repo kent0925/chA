@@ -26,6 +26,16 @@ async function callGAS(payload) {
     }
 }
 
+async function getClientIP() {
+    try {
+        const res = await fetch('https://api.ipify.org?format=json');
+        const data = await res.json();
+        return data.ip;
+    } catch(e) {
+        return "UNKNOWN";
+    }
+}
+
 let currentUser = { uid: 'GUEST', platform: 'WEB', displayName: '訪客測試', pictureUrl: '', personalCount: 0 };
 
 // --- 1. 加密引擎 ---
@@ -284,9 +294,17 @@ async function submitReport() {
         landlordType: document.getElementById('report-landlord-type')?.value || ''
     };
 
+    // 取得法庭證據包
+    const ip = await getClientIP();
+    const evidence = {
+        uid: currentUser.uid,
+        ip: ip,
+        userAgent: navigator.userAgent
+    };
+
     const payload = {
         action: "report", uid: hUid, platform: currentUser.platform, type: currentReportType,
-        area, hName, hPhone, ageRange: age, gender, year, tags: Array.from(selectedTags), timestamp: new Date().toISOString(), specificData
+        area, hName, hPhone, ageRange: age, gender, year, tags: Array.from(selectedTags), timestamp: new Date().toISOString(), specificData, evidence
     };
 
     try {
