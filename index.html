@@ -52,7 +52,12 @@
                     <label>目測年齡</label>
                     <select id="in-age">
                         <option value="">不限/未知</option>
-                        <option value="20-30">20-30 歲</option><option value="30-40">30-40 歲</option><option value="40-50">40-50 歲</option><option value="50+">50 歲以上</option>
+                        <option value="under-20">20 歲以下</option>
+                        <option value="20-29">20-29 歲</option>
+                        <option value="30-39">30-39 歲</option>
+                        <option value="40-49">40-49 歲</option>
+                        <option value="50-59">50-59 歲</option>
+                        <option value="60+">60 歲以上</option>
                     </select>
                 </div>
                 <div class="input-group">
@@ -161,8 +166,21 @@
                 <div class="input-group">
                     <label>對象年齡 / 性別 <span class="required">*</span></label>
                     <div style="display: flex; gap: 10px;">
-                        <select id="report-age" style="flex: 1;"><option value="20-30">20-30歲</option><option value="30-40">30-40歲</option><option value="40-50">40-50歲</option><option value="50+">50歲+</option></select>
-                        <select id="report-gender" style="flex: 1;"><option value="男">男</option><option value="女">女</option><option value="其他">其他</option></select>
+                        <select id="report-age" style="flex: 1;" required>
+                            <option value="" disabled selected>選擇年齡</option>
+                            <option value="under-20">20歲以下</option>
+                            <option value="20-29">20-29歲</option>
+                            <option value="30-39">30-39歲</option>
+                            <option value="40-49">40-49歲</option>
+                            <option value="50-59">50-59歲</option>
+                            <option value="60+">60歲以上</option>
+                        </select>
+                        <select id="report-gender" style="flex: 1;" required>
+                            <option value="" disabled selected>選擇性別</option>
+                            <option value="男">男</option>
+                            <option value="女">女</option>
+                            <option value="其他">其他</option>
+                        </select>
                     </div>
                 </div>
 
@@ -176,6 +194,7 @@
                     <div class="input-group" style="flex: 1;">
                         <label>每月租金 <span class="required">*</span></label>
                         <select id="report-rent" required>
+                            <option value="" disabled selected>請選擇租金範圍</option>
                             <option value="10k_under">1萬(含)以下</option><option value="10k_20k">1-2萬</option><option value="20k_30k">2-3萬</option><option value="30k_50k">3-5萬</option><option value="50k_over">5萬以上</option>
                         </select>
                     </div>
@@ -184,20 +203,21 @@
                 <div class="input-group">
                     <label>格局類型 <span class="required">*</span></label>
                     <select id="report-layout" required>
+                        <option value="" disabled selected>請選擇格局類型</option>
                         <option value="套房">獨立/分租套房</option><option value="雅房">分租雅房</option><option value="整層">整層住家</option><option value="其他">其他</option>
                     </select>
                 </div>
                 
                 <div id="fields-tenant" class="dynamic-fields">
                     <div class="input-group">
-                        <label>承租型態</label>
-                        <select id="report-tenant-target"><option value="住宅">一般住宅</option><option value="店面">店面</option><option value="商辦">商辦/廠房</option></select>
+                        <label>承租型態 <span class="required">*</span></label>
+                        <select id="report-tenant-target"><option value="" disabled selected>請選擇型態</option><option value="住宅">一般住宅</option><option value="店面">店面</option><option value="商辦">商辦/廠房</option></select>
                     </div>
                 </div>
                 <div id="fields-landlord" class="dynamic-fields" style="display: none;">
                     <div class="input-group">
-                        <label>房東屬性</label>
-                        <select id="report-landlord-type"><option value="屋主">屋主本人</option><option value="二房東">二房東</option><option value="代管">包租代管</option></select>
+                        <label>房東屬性 <span class="required">*</span></label>
+                        <select id="report-landlord-type"><option value="" disabled selected>請選擇屬性</option><option value="屋主">屋主本人</option><option value="二房東">二房東</option><option value="代管">包租代管</option></select>
                     </div>
                 </div>
 

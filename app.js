@@ -276,10 +276,20 @@ async function submitReport() {
     if (!agreement) return alert("請勾選切結書");
     if (!name) return alert("請輸入對象姓名");
     if (phoneClean.length !== 4) return alert("請輸入正確的電話末四碼");
+    if (!age) return alert("請選擇年齡");
+    if (!gender) return alert("請選擇性別");
     if (!area) return alert("請選擇區域");
     if (!year) return alert("請選擇回報年份");
     if (!document.getElementById('report-rent')?.value) return alert("請選擇每月租金");
     if (!document.getElementById('report-layout')?.value) return alert("請選擇格局類型");
+    
+    if ((currentReportType === 'tenant' || currentReportType === 'student') && !document.getElementById('report-tenant-target')?.value) {
+        return alert("請選擇承租型態");
+    }
+    if (currentReportType === 'landlord' && !document.getElementById('report-landlord-type')?.value) {
+        return alert("請選擇房東屬性");
+    }
+
     if (selectedTags.size === 0) return alert("請至少選擇一個標籤");
 
     switchView('view-loading');
@@ -348,6 +358,7 @@ window.onload = async () => {
     await initializeAuth();
     if (document.getElementById('report-year')) {
         const s = document.getElementById('report-year'), cur = new Date().getFullYear();
+        const def = document.createElement('option'); def.value = ''; def.disabled = true; def.selected = true; def.innerText = '請選擇年份'; s.appendChild(def);
         for (let y = cur; y >= 2018; y--) { const o = document.createElement('option'); o.value = y; o.innerText = `${y} 年`; s.appendChild(o); }
     }
     switchView('view-search');
