@@ -67,7 +67,7 @@
                 </div>
                 <button class="btn-primary" onclick="handleSearch()">🔍 查詢履約紀錄</button>
                 <div class="divider"><span>或</span></div>
-                <button class="btn-outline" id="btn-open-report" onclick="switchView('view-report'); renderTags();">✍️ 建立履約紀錄建檔</button>
+                <button class="btn-outline" id="btn-open-report" onclick="openReportView()">✍️ 建立履約紀錄建檔</button>
             </div>
         </section>
 
@@ -109,6 +109,26 @@
 
             <div id="admin-tool-section" class="hidden" style="margin-top: 20px; border-top: 1px dashed var(--border); padding: 15px;">
                 <button id="btn-admin-manage" class="btn-secondary w-full" onclick="switchView('view-admin-tool')">⚙️ 進入管理員下架工具</button>
+            </div>
+        </section>
+
+        <section id="view-admin-tool" class="view hidden">
+            <div class="card">
+                <div class="card-tag" style="background:var(--danger); color:white; border-color:var(--danger);">⚙️ 管理員強制下架工具</div>
+                <div class="input-group" style="margin-top: 20px;">
+                    <label>目標對象姓名 <span class="required">*</span></label>
+                    <input type="text" id="admin-search-name" placeholder="請輸入對象真實姓名" required>
+                </div>
+                <div class="input-group">
+                    <label>電話末四碼 (選填)</label>
+                    <input type="tel" id="admin-search-phone" maxlength="4" placeholder="請輸入 4 位數字" oninput="this.value=this.value.replace(/\D/g,'');">
+                </div>
+                <button class="btn-primary" style="background:var(--danger); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);" onclick="adminSearch()">🔍 搜尋強制下架目標</button>
+                <button class="btn-outline" style="margin-top: 10px;" onclick="resetApp()">返回</button>
+            </div>
+            <div id="admin-results-container" class="card hidden">
+                <div class="divider-small"><span>比對結果</span></div>
+                <div id="admin-results"></div>
             </div>
         </section>
 
