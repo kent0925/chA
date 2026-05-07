@@ -396,7 +396,7 @@ async function adminTakedown(recordId) {
 
 async function updateLiveStats() {
     try {
-        const s = await callGAS({ action: "get_stats" });
+        const s = await callGAS({ action: "stats" });
         if (s && s.status === "ok") {
             document.getElementById("stat-total").innerText = s.total || 0;
             document.getElementById("stat-high").innerText = s.highRisk || 0;
