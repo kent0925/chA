@@ -197,6 +197,12 @@ function updateResultsUI(input) {
 
     updateSpectrum(risk);
     renderQueryRef(input.isAdmin);
+
+    // 💡 若為管理員，直接將下方的大按鈕顯示出來，不需再點擊小齒輪
+    const adminSection = document.getElementById('admin-tool-section');
+    if (adminSection) {
+        adminSection.classList.toggle('hidden', !input.isAdmin);
+    }
 }
 
 function renderResultTags(tags) {
