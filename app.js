@@ -6,17 +6,23 @@ const DEFAULT_LIFF_ID = "2009974240-zhGWMVVX";
 // --- 0.5 通用 API 呼叫 ---
 async function callGAS(payload) {
     try {
-        const resp = await fetch(GAS_API_URL, {
-            method: "POST",
-            mode: "cors",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
+        const response = await fetch(GAS_API_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
         });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        return await resp.json();
-    } catch (err) {
-        console.warn("📡 GAS 連線異常:", err.message);
-        return null;
+        const result = await response.json();
+        
+        // --- 除錯模式：若有伺服器內部錯誤，直接噴出詳細 log ---
+        if (result.status === 'error' && result.details) {
+            console.error("GAS 內部錯誤:", result.details, "\nStack:", result.stack);
+            alert(`伺服器內部錯誤詳細資訊：\n\n${result.details}\n\n請截圖回報開發者。`);
+        }
+        
+        return result;
+    } catch (error) {
+        console.error("API Error:", error);
+        return { status: "error", message: "連線失敗，請檢查網路連線" };
     }
 }
 
@@ -237,13 +243,7 @@ function renderQueryRef(isAdmin = false) {
 }
 
 function toggleAdminTool() {
-    const section = document.getElementById('admin-tool-section');
-    if (section) {
-        section.classList.toggle('hidden');
-        if (!section.classList.contains('hidden')) {
-            section.scrollIntoView({ behavior: 'smooth' });
-        }
-    }
+    switchView('view-admin-tool');
 }
 
 // --- 5. 回報提交 (補全性別欄位) ---
