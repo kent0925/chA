@@ -242,9 +242,16 @@ async function submitReport() {
     const hPhone = await hashData(phoneClean);
     const hUid = await hashData(currentUser.uid);
     
+    const specificData = {
+        rentRange: document.getElementById('report-rent')?.value || '',
+        layout: document.getElementById('report-layout')?.value || '',
+        target: document.getElementById('report-tenant-target')?.value || '',
+        landlordType: document.getElementById('report-landlord-type')?.value || ''
+    };
+
     const payload = {
         action: "report", uid: hUid, platform: currentUser.platform, type: currentReportType,
-        area, hName, hPhone, ageRange: age, gender, year, tags: Array.from(selectedTags), timestamp: new Date().toISOString()
+        area, hName, hPhone, ageRange: age, gender, year, tags: Array.from(selectedTags), timestamp: new Date().toISOString(), specificData
     };
 
     try {
