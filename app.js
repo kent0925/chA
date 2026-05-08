@@ -722,7 +722,8 @@ function openToSModal(force = false) {
     const content = document.getElementById('tos-content');
     modal.classList.remove('hidden');
     if (force) {
-        document.getElementById('tos-close-btn').style.display = 'none';
+        const closeBtn = document.getElementById('tos-close-btn');
+        if (closeBtn) closeBtn.style.display = 'none';
         acceptBtn.disabled = true;
         content.onscroll = () => { if (content.scrollTop + content.clientHeight >= content.scrollHeight - 5) { acceptBtn.disabled = false; acceptBtn.innerText = "我同意"; } };
     }
