@@ -127,19 +127,133 @@ const TAG_LIBRARY = {
         { text: "🛡️ 家長過度介入", impact: "bad" },
         { text: "💰 租金按時繳納", impact: "good" },
         { text: "💸 寒暑假欠繳/空窗", impact: "bad" }
+    ],
+    car_consumer: [
+        { text: "💥 發生事故隱瞞", impact: "bad" },
+        { text: "🚗 車輛惡意毀損", impact: "bad" },
+        { text: "💸 租金罰單欠繳", impact: "bad" },
+        { text: "⚠️ 嚴重逾期歸還", impact: "bad" },
+        { text: "🚭 車內吸菸異味", impact: "bad" },
+        { text: "✨ 車況維持極佳", impact: "good" },
+        { text: "💰 費用結清迅速", impact: "good" },
+        { text: "⏰ 準時歸還車輛", impact: "good" },
+        { text: "🤝 配合調度溝通", impact: "good" },
+        { text: "🛡️ 駕駛習慣優良", impact: "good" }
+    ],
+    car_company: [
+        { text: "🔍 惡意扣留押金", impact: "bad" },
+        { text: "⚖️ 租賃契約陷阱", impact: "bad" },
+        { text: "🚗 隱瞞車況瑕疵", impact: "bad" },
+        { text: "💸 巧立名目扣款", impact: "bad" },
+        { text: "🚨 事故推卸責任", impact: "bad" },
+        { text: "👼 退還押金迅速", impact: "good" },
+        { text: "🛡️ 車輛保養確實", impact: "good" },
+        { text: "🤝 點交透明確實", impact: "good" },
+        { text: "🆘 道路救援迅速", impact: "good" },
+        { text: "📜 契約條款合理", impact: "good" }
     ]
 };
 let selectedTags = new Set();
+let currentSystemMode = 'house';
+let currentSearchType = 'tenant';
 let currentReportType = 'tenant';
+let currentRecordIdToModify = null;
+
+function setSystemMode(mode) {
+    currentSystemMode = mode;
+    const searchIdentitySwitch = document.getElementById('search-identity-switch');
+    const reportIdentitySwitch = document.getElementById('report-identity-switch');
+    const searchCardTag = document.getElementById('search-card-tag');
+    const reportCardTag = document.getElementById('report-card-tag');
+
+    if (mode === 'house') {
+        searchCardTag.innerText = '🏠 房屋租賃查詢';
+        reportCardTag.innerText = '👤 建立房屋履約回報';
+        if (searchIdentitySwitch) searchIdentitySwitch.innerHTML = `
+            <button id="btn-search-tenant" class="active" onclick="setSearchType('tenant')">一般房客</button>
+            <button id="btn-search-student" onclick="setSearchType('student')">學生房客</button>
+            <button id="btn-search-landlord" onclick="setSearchType('landlord')">房東紀錄</button>
+        `;
+        if (reportIdentitySwitch) reportIdentitySwitch.innerHTML = `
+            <button id="btn-report-tenant" class="active" onclick="setReportType('tenant')">一般房客</button>
+            <button id="btn-report-student" onclick="setReportType('student')">學生房客</button>
+            <button id="btn-report-landlord" onclick="setReportType('landlord')">房東紀錄</button>
+        `;
+        setSearchType('tenant');
+        setReportType('tenant');
+    } else {
+        searchCardTag.innerText = '🚗 車輛租賃查詢';
+        reportCardTag.innerText = '🚗 建立車輛履約回報';
+        if (searchIdentitySwitch) searchIdentitySwitch.innerHTML = `
+            <button id="btn-search-car_consumer" class="active" onclick="setSearchType('car_consumer')">承租人 (查租客)</button>
+            <button id="btn-search-car_company" onclick="setSearchType('car_company')">車行 (查車行)</button>
+        `;
+        if (reportIdentitySwitch) reportIdentitySwitch.innerHTML = `
+            <button id="btn-report-car_consumer" class="active" onclick="setReportType('car_consumer')">承租人 (查租客)</button>
+            <button id="btn-report-car_company" onclick="setReportType('car_company')">車行 (查車行)</button>
+        `;
+        setSearchType('car_consumer');
+        setReportType('car_consumer');
+    }
+
+    switchView('view-search');
+}
+
+function setSearchType(type) {
+    currentSearchType = type;
+    document.querySelectorAll('#search-identity-switch button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-search-${type}`)?.classList.add('active');
+
+    const isVehicle = (currentSystemMode === 'vehicle');
+    const isCompany = (type === 'car_company');
+    const isConsumer = (type === 'car_consumer');
+
+    if(document.getElementById('search-taxid-group')) document.getElementById('search-taxid-group').style.display = isCompany ? 'block' : 'none';
+    if(document.getElementById('search-car-type-group')) document.getElementById('search-car-type-group').style.display = isConsumer ? 'block' : 'none';
+    if(document.getElementById('search-age-group')) document.getElementById('search-age-group').style.display = isVehicle ? 'none' : 'block';
+    if(document.getElementById('search-gender-group')) document.getElementById('search-gender-group').style.display = isCompany ? 'none' : 'block';
+    
+    if(document.getElementById('lbl-search-name')) document.getElementById('lbl-search-name').innerHTML = isCompany ? '車行名稱 <span class="required">*</span>' : '對象姓名 <span class="required">*</span>';
+}
 
 function setReportType(type) {
     currentReportType = type;
-    document.querySelectorAll('.identity-switch button').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('#report-identity-switch button').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-report-${type}`)?.classList.add('active');
-    document.getElementById('fields-tenant').style.display = (type === 'tenant' || type === 'student') ? 'block' : 'none';
-    document.getElementById('fields-landlord').style.display = (type === 'landlord') ? 'block' : 'none';
+
+    const isVehicle = (currentSystemMode === 'vehicle');
+    const isCompany = (type === 'car_company');
+    const isConsumer = (type === 'car_consumer');
+
+    if(document.getElementById('report-taxid-group')) document.getElementById('report-taxid-group').style.display = isCompany ? 'block' : 'none';
+    if(document.getElementById('report-car-type-group')) document.getElementById('report-car-type-group').style.display = isConsumer ? 'block' : 'none';
+    
+    if(document.getElementById('report-age-gender-group')) document.getElementById('report-age-gender-group').style.display = isVehicle ? 'none' : 'block';
+    if(document.getElementById('report-area-group')) document.getElementById('report-area-group').style.display = isVehicle ? 'none' : 'block';
+    if(document.getElementById('report-year-rent-group')) document.getElementById('report-year-rent-group').style.display = isVehicle ? 'none' : 'flex';
+    if(document.getElementById('report-layout-group')) document.getElementById('report-layout-group').style.display = isVehicle ? 'none' : 'block';
+    
+    if(document.getElementById('fields-tenant')) document.getElementById('fields-tenant').style.display = (type === 'tenant' || type === 'student') ? 'block' : 'none';
+    if(document.getElementById('fields-landlord')) document.getElementById('fields-landlord').style.display = (type === 'landlord') ? 'block' : 'none';
+    
+    if(document.getElementById('lbl-report-name')) document.getElementById('lbl-report-name').innerHTML = isCompany ? '車行名稱 <span class="required">*</span>' : '對象姓名 <span class="required">*</span>';
+
     selectedTags.clear();
     renderTags();
+}
+
+async function fetchCompanyName(taxId, targetInputId) {
+    if (taxId.length === 8) {
+        try {
+            const res = await fetch(`https://company.g0v.ronny.tw/api/show/${taxId}`);
+            const data = await res.json();
+            if (data && data.data && data.data['公司名稱']) {
+                document.getElementById(targetInputId).value = data.data['公司名稱'];
+            }
+        } catch (e) {
+            console.error("查無此統編或網路錯誤", e);
+        }
+    }
 }
 
 function renderTags() {
@@ -160,13 +274,33 @@ function renderTags() {
 
 // --- 4. 搜尋與結果渲染 (補全參數) ---
 async function handleSearch() {
+    const isVehicle = (currentSystemMode === 'vehicle');
+    const isCompany = (currentSearchType === 'car_company');
+    const isConsumer = (currentSearchType === 'car_consumer');
+
     const name = document.getElementById('in-name').value.trim();
     const phoneRaw = document.getElementById('in-phone').value.trim();
     const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
-    const gender = document.getElementById('in-gender')?.value || "";
-    const ageRange = document.getElementById('in-age')?.value || "";
+    
+    let gender = "";
+    let ageRange = "";
 
-    if (!name) return alert("請輸入姓名");
+    if (isVehicle) {
+        if (isCompany) {
+            const taxId = document.getElementById('in-taxid').value.trim();
+            if (taxId.length !== 8) return alert("請輸入完整的8碼統一編號");
+        } else if (isConsumer) {
+            ageRange = document.getElementById('in-car-type')?.value || ""; // 借用 ageRange 傳遞特徵以計算關聯
+        }
+        if (!isCompany) {
+            gender = document.getElementById('in-gender')?.value || "";
+        }
+    } else {
+        gender = document.getElementById('in-gender')?.value || "";
+        ageRange = document.getElementById('in-age')?.value || "";
+    }
+
+    if (!name) return alert(isCompany ? "請輸入車行名稱" : "請輸入姓名");
     switchView('view-loading');
     const hName = await hashData(name);
     const hPhone = phoneClean ? await hashData(phoneClean) : "";
@@ -207,6 +341,19 @@ function updateResultsUI(input) {
 
     updateSpectrum(risk);
     renderQueryRef(input.isAdmin);
+
+    // 處理自身提報紀錄的修改介面
+    const modSection = document.getElementById('modify-report-section');
+    if (modSection) {
+        if (input.ownReport) {
+            currentRecordIdToModify = input.ownReport.recordId;
+            modSection.classList.remove('hidden');
+            renderModifyTags(input.ownReport.tags);
+        } else {
+            currentRecordIdToModify = null;
+            modSection.classList.add('hidden');
+        }
+    }
 
     // 💡 若為管理員，直接將下方的大按鈕顯示出來，不需再點擊小齒輪
     const adminSection = document.getElementById('admin-tool-section');
@@ -262,32 +409,115 @@ function toggleAdminTool() {
     switchView('view-admin-tool');
 }
 
+function renderModifyTags(existingTags) {
+    const container = document.getElementById('modify-tags-grid');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const allAvailableTags = TAG_LIBRARY[currentSearchType] || [];
+    
+    selectedTags.clear();
+    existingTags.forEach(t => selectedTags.add(t));
+    
+    allAvailableTags.forEach(tag => {
+        const chip = document.createElement('div');
+        chip.className = 'tag-chip';
+        if (selectedTags.has(tag.text)) chip.classList.add('selected');
+        chip.innerText = tag.text;
+        chip.onclick = () => {
+            if (selectedTags.has(tag.text)) { selectedTags.delete(tag.text); chip.classList.remove('selected'); }
+            else { selectedTags.add(tag.text); chip.classList.add('selected'); }
+        };
+        container.appendChild(chip);
+    });
+}
+
+async function submitModifiedReport() {
+    if (!currentRecordIdToModify && currentRecordIdToModify !== 0) return alert("無效的紀錄 ID");
+    if (selectedTags.size === 0) return alert("請至少選擇一個標籤");
+    if (!confirm("確定要修改這筆紀錄的標籤嗎？")) return;
+    
+    switchView('view-loading');
+    const hUid = await hashData(currentUser.uid);
+    try {
+        const res = await callGAS({ 
+            action: 'modify_report', 
+            uid: hUid, 
+            platform: currentUser.platform, 
+            recordId: currentRecordIdToModify, 
+            tags: Array.from(selectedTags) 
+        });
+        if (res.status === 'ok') {
+            alert("✅ 標籤已修改成功！");
+            resetApp();
+        } else {
+            alert(res.message || "修改失敗");
+            switchView('view-results');
+        }
+    } catch(e) {
+        alert("網路連線異常，請稍後再試。");
+        switchView('view-results');
+    }
+}
+
 // --- 5. 回報提交 (補全性別欄位) ---
 async function submitReport() {
+    const isVehicle = (currentSystemMode === 'vehicle');
+    const isCompany = (currentReportType === 'car_company');
+    const isConsumer = (currentReportType === 'car_consumer');
+
     const name = document.getElementById('report-name').value.trim();
     const phoneRaw = document.getElementById('report-phone').value.trim();
     const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
-    const area = document.getElementById('report-area').value;
-    const age = document.getElementById('report-age').value;
-    const gender = document.getElementById('report-gender').value;
-    const year = document.getElementById('report-year').value;
+    
     const agreement = document.getElementById('report-agreement').checked;
 
     if (!agreement) return alert("請勾選切結書");
-    if (!name) return alert("請輸入對象姓名");
-    if (phoneClean.length !== 4) return alert("請輸入正確的電話末四碼");
-    if (!age) return alert("請選擇年齡");
-    if (!gender) return alert("請選擇性別");
-    if (!area) return alert("請選擇區域");
-    if (!year) return alert("請選擇回報年份");
-    if (!document.getElementById('report-rent')?.value) return alert("請選擇每月租金");
-    if (!document.getElementById('report-layout')?.value) return alert("請選擇格局類型");
-    
-    if ((currentReportType === 'tenant' || currentReportType === 'student') && !document.getElementById('report-tenant-target')?.value) {
-        return alert("請選擇承租型態");
-    }
-    if (currentReportType === 'landlord' && !document.getElementById('report-landlord-type')?.value) {
-        return alert("請選擇房東屬性");
+    if (!name) return alert(isCompany ? "請輸入車行名稱" : "請輸入對象姓名");
+    if (phoneClean.length !== 4 && !isCompany) return alert("請輸入正確的電話末四碼");
+
+    let area = "", age = "", gender = "", year = "", specificData = {};
+
+    if (isVehicle) {
+        year = new Date().getFullYear().toString();
+        area = "不適用";
+        if (isCompany) {
+            const taxId = document.getElementById('report-taxid').value.trim();
+            if (taxId.length !== 8) return alert("請輸入完整的8碼統一編號");
+            specificData.taxId = await hashData(taxId);
+        } else if (isConsumer) {
+            age = document.getElementById('report-car-type')?.value;
+            if (!age) return alert("請選擇租賃車種");
+            specificData.carType = age;
+            gender = document.getElementById('report-gender').value;
+            if (!gender) return alert("請選擇性別");
+        }
+    } else {
+        area = document.getElementById('report-area').value;
+        age = document.getElementById('report-age').value;
+        gender = document.getElementById('report-gender').value;
+        year = document.getElementById('report-year').value;
+
+        if (!age) return alert("請選擇年齡");
+        if (!gender) return alert("請選擇性別");
+        if (!area) return alert("請選擇區域");
+        if (!year) return alert("請選擇回報年份");
+        if (!document.getElementById('report-rent')?.value) return alert("請選擇每月租金");
+        if (!document.getElementById('report-layout')?.value) return alert("請選擇格局類型");
+        
+        if ((currentReportType === 'tenant' || currentReportType === 'student') && !document.getElementById('report-tenant-target')?.value) {
+            return alert("請選擇承租型態");
+        }
+        if (currentReportType === 'landlord' && !document.getElementById('report-landlord-type')?.value) {
+            return alert("請選擇房東屬性");
+        }
+
+        specificData = {
+            rentRange: document.getElementById('report-rent')?.value || '',
+            layout: document.getElementById('report-layout')?.value || '',
+            target: document.getElementById('report-tenant-target')?.value || '',
+            landlordType: document.getElementById('report-landlord-type')?.value || ''
+        };
     }
 
     if (selectedTags.size === 0) return alert("請至少選擇一個標籤");
@@ -296,13 +526,6 @@ async function submitReport() {
     const hName = await hashData(name);
     const hPhone = await hashData(phoneClean);
     const hUid = await hashData(currentUser.uid);
-
-    const specificData = {
-        rentRange: document.getElementById('report-rent')?.value || '',
-        layout: document.getElementById('report-layout')?.value || '',
-        target: document.getElementById('report-tenant-target')?.value || '',
-        landlordType: document.getElementById('report-landlord-type')?.value || ''
-    };
 
     // 取得法庭證據包
     const ip = await getClientIP();
@@ -338,12 +561,13 @@ function openToSModal(force = false) {
 }
 function acceptToS() { localStorage.setItem('tos_v1', 'true'); document.getElementById('tos-modal').classList.add('hidden'); }
 function checkFirstTimeUser() { if (!localStorage.getItem('tos_v1')) openToSModal(true); }
-function switchView(vId) { ['view-search', 'view-loading', 'view-results', 'view-report', 'view-admin-tool'].forEach(id => { const v = document.getElementById(id); if (v) v.classList.toggle('hidden', id !== vId); }); }
+function switchView(vId) { ['view-home', 'view-search', 'view-loading', 'view-results', 'view-report', 'view-admin-tool'].forEach(id => { const v = document.getElementById(id); if (v) v.classList.toggle('hidden', id !== vId); }); }
 
 function resetApp() { 
     if(document.getElementById('in-name')) document.getElementById('in-name').value = ''; 
     if(document.getElementById('in-phone')) document.getElementById('in-phone').value = ''; 
-    switchView('view-search'); 
+    if(document.getElementById('in-taxid')) document.getElementById('in-taxid').value = '';
+    switchView('view-home'); 
 }
 
 function openReportView() {
@@ -361,7 +585,7 @@ window.onload = async () => {
         const def = document.createElement('option'); def.value = ''; def.disabled = true; def.selected = true; def.innerText = '請選擇年份'; s.appendChild(def);
         for (let y = cur; y >= 2018; y--) { const o = document.createElement('option'); o.value = y; o.innerText = `${y} 年`; s.appendChild(o); }
     }
-    switchView('view-search');
+    switchView('view-home');
     updateLiveStats();
     checkFirstTimeUser();
 };
