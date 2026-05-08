@@ -13,7 +13,7 @@
 <body>
     <div id="app">
         <div id="toast-container" class="toast-container"></div>
-        <header>
+        <header onclick="resetApp()" style="cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
             <h1>🛡️ 蒙眼</h1>
             <p>去識別化租賃數據庫</p>
         </header>
@@ -47,7 +47,7 @@
                 <h2 style="margin-top: 0; color: var(--text);">選擇查詢系統</h2>
                 <p class="sub-text" style="margin-bottom: 10px;">請選擇您要查詢或建立的履約紀錄類型</p>
                 <button class="btn-primary" onclick="setSystemMode('house')">🏠 進入房屋租賃履約查詢</button>
-                <button class="btn-primary" style="background: var(--warning); color: #fff; border-color: var(--warning); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);" onclick="setSystemMode('vehicle')">🚗 進入車輛租賃履約查詢</button>
+                <button class="btn-primary" style="background: var(--level-orange); color: #fff; border-color: var(--level-orange); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);" onclick="setSystemMode('vehicle')">🚗 進入車輛租賃履約查詢</button>
             </div>
         </section>
 
@@ -57,14 +57,26 @@
                 <div class="identity-switch" id="search-identity-switch" style="margin-top: 15px;">
                     <!-- 動態生成 -->
                 </div>
-                <div class="input-group">
-                    <label id="lbl-search-name" for="in-name">對象姓名 <span class="required">*</span></label>
-                    <input type="text" id="in-name" placeholder="請輸入真實姓名" required>
+                <!-- 車行名稱輸入方式切換 (車輛車行專用) -->
+                <div class="input-group" id="search-company-input-method" style="display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--card-border);">
+                    <label style="color: var(--primary);">輸入方式</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="search_comp_method" value="taxid" checked onchange="toggleSearchCompMethod()"> 透過統編查詢
+                        </label>
+                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="search_comp_method" value="manual" onchange="toggleSearchCompMethod()"> 手動輸入名稱
+                        </label>
+                    </div>
                 </div>
                 <!-- 車行統編 (車輛專用) -->
                 <div class="input-group" id="search-taxid-group" style="display: none;">
                     <label>車行統一編號 (8碼) <span class="required">*</span></label>
                     <input type="text" id="in-taxid" maxlength="8" placeholder="請輸入 8 碼數字" oninput="this.value=this.value.replace(/\D/g,''); fetchCompanyName(this.value, 'in-name');">
+                </div>
+                <div class="input-group">
+                    <label id="lbl-search-name" for="in-name">對象姓名 <span class="required">*</span></label>
+                    <input type="text" id="in-name" placeholder="請輸入真實姓名" required>
                 </div>
                 <!-- 車輛類型 (車輛租客專用) -->
                 <div class="input-group" id="search-car-type-group" style="display: none;">
@@ -107,6 +119,7 @@
                 <button class="btn-primary" onclick="handleSearch()">🔍 查詢履約紀錄</button>
                 <div class="divider"><span>或</span></div>
                 <button class="btn-outline" id="btn-open-report" onclick="openReportView()">✍️ 建立履約紀錄建檔</button>
+                <button class="btn-secondary" style="margin-top: 10px;" onclick="resetApp()">🏠 返回首頁切換系統</button>
             </div>
         </section>
 
@@ -209,9 +222,17 @@
                         <option value="AREA_I1">金馬 (金門/連江)</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <label id="lbl-report-name">對象姓名 <span class="required">*</span></label>
-                    <input type="text" id="report-name" placeholder="請輸入真實姓名" required>
+                <!-- 車行名稱輸入方式切換 (車輛車行專用) -->
+                <div class="input-group" id="report-company-input-method" style="display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--card-border);">
+                    <label style="color: var(--primary);">輸入方式</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="report_comp_method" value="taxid" checked onchange="toggleReportCompMethod()"> 透過統編查詢
+                        </label>
+                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="report_comp_method" value="manual" onchange="toggleReportCompMethod()"> 手動輸入名稱
+                        </label>
+                    </div>
                 </div>
                 <!-- 車行統編 (車輛專用) -->
                 <div class="input-group" id="report-taxid-group" style="display: none;">
@@ -219,14 +240,18 @@
                     <input type="text" id="report-taxid" maxlength="8" placeholder="請輸入 8 碼數字" oninput="this.value=this.value.replace(/\D/g,''); fetchCompanyName(this.value, 'report-name');" required>
                 </div>
                 <div class="input-group">
+                    <label id="lbl-report-name">對象姓名 <span class="required">*</span></label>
+                    <input type="text" id="report-name" placeholder="請輸入真實姓名" required>
+                </div>
+                <div class="input-group">
                     <label>電話末四碼 <span class="required">*</span></label>
                     <input type="tel" id="report-phone" maxlength="4" placeholder="請輸入 4 位數字"
                         oninput="this.value=this.value.replace(/\D/g,'');" required>
                 </div>
-                <div class="input-group" id="report-age-gender-group">
-                    <label>對象年齡 / 性別 <span class="required">*</span></label>
-                    <div style="display: flex; gap: 10px;">
-                        <select id="report-age" style="flex: 1;" required>
+                <div class="input-row" id="report-age-gender-group">
+                    <div class="input-group" id="report-age-container" style="flex: 1;">
+                        <label>對象年齡 <span class="required">*</span></label>
+                        <select id="report-age" required>
                             <option value="" disabled selected>選擇年齡</option>
                             <option value="under-20">20歲以下</option>
                             <option value="20-29">20-29歲</option>
@@ -235,7 +260,10 @@
                             <option value="50-59">50-59歲</option>
                             <option value="60+">60歲以上</option>
                         </select>
-                        <select id="report-gender" style="flex: 1;" required>
+                    </div>
+                    <div class="input-group" id="report-gender-container" style="flex: 1;">
+                        <label>性別 <span class="required">*</span></label>
+                        <select id="report-gender" required>
                             <option value="" disabled selected>選擇性別</option>
                             <option value="男">男</option>
                             <option value="女">女</option>

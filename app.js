@@ -208,12 +208,22 @@ function setSearchType(type) {
     const isCompany = (type === 'car_company');
     const isConsumer = (type === 'car_consumer');
 
-    if(document.getElementById('search-taxid-group')) document.getElementById('search-taxid-group').style.display = isCompany ? 'block' : 'none';
+    if(document.getElementById('search-company-input-method')) document.getElementById('search-company-input-method').style.display = isCompany ? 'block' : 'none';
     if(document.getElementById('search-car-type-group')) document.getElementById('search-car-type-group').style.display = isConsumer ? 'block' : 'none';
     if(document.getElementById('search-age-group')) document.getElementById('search-age-group').style.display = isVehicle ? 'none' : 'block';
     if(document.getElementById('search-gender-group')) document.getElementById('search-gender-group').style.display = isCompany ? 'none' : 'block';
     
     if(document.getElementById('lbl-search-name')) document.getElementById('lbl-search-name').innerHTML = isCompany ? '車行名稱 <span class="required">*</span>' : '對象姓名 <span class="required">*</span>';
+
+    if (isCompany) {
+        toggleSearchCompMethod();
+    } else {
+        if(document.getElementById('search-taxid-group')) document.getElementById('search-taxid-group').style.display = 'none';
+        if(document.getElementById('in-name')) {
+            document.getElementById('in-name').readOnly = false;
+            document.getElementById('in-name').placeholder = '請輸入真實姓名';
+        }
+    }
 }
 
 function setReportType(type) {
@@ -225,10 +235,13 @@ function setReportType(type) {
     const isCompany = (type === 'car_company');
     const isConsumer = (type === 'car_consumer');
 
-    if(document.getElementById('report-taxid-group')) document.getElementById('report-taxid-group').style.display = isCompany ? 'block' : 'none';
+    if(document.getElementById('report-company-input-method')) document.getElementById('report-company-input-method').style.display = isCompany ? 'block' : 'none';
     if(document.getElementById('report-car-type-group')) document.getElementById('report-car-type-group').style.display = isConsumer ? 'block' : 'none';
     
-    if(document.getElementById('report-age-gender-group')) document.getElementById('report-age-gender-group').style.display = isVehicle ? 'none' : 'block';
+    if(document.getElementById('report-age-gender-group')) document.getElementById('report-age-gender-group').style.display = isCompany ? 'none' : 'flex';
+    if(document.getElementById('report-age-container')) document.getElementById('report-age-container').style.display = (isVehicle) ? 'none' : 'block';
+    if(document.getElementById('report-gender-container')) document.getElementById('report-gender-container').style.display = isCompany ? 'none' : 'block';
+
     if(document.getElementById('report-area-group')) document.getElementById('report-area-group').style.display = isVehicle ? 'none' : 'block';
     if(document.getElementById('report-year-rent-group')) document.getElementById('report-year-rent-group').style.display = isVehicle ? 'none' : 'flex';
     if(document.getElementById('report-layout-group')) document.getElementById('report-layout-group').style.display = isVehicle ? 'none' : 'block';
@@ -238,8 +251,56 @@ function setReportType(type) {
     
     if(document.getElementById('lbl-report-name')) document.getElementById('lbl-report-name').innerHTML = isCompany ? '車行名稱 <span class="required">*</span>' : '對象姓名 <span class="required">*</span>';
 
+    if (isCompany) {
+        toggleReportCompMethod();
+    } else {
+        if(document.getElementById('report-taxid-group')) document.getElementById('report-taxid-group').style.display = 'none';
+        if(document.getElementById('report-name')) {
+            document.getElementById('report-name').readOnly = false;
+            document.getElementById('report-name').placeholder = '請輸入對象真實姓名';
+        }
+    }
+
     selectedTags.clear();
     renderTags();
+}
+
+function toggleSearchCompMethod() {
+    const el = document.querySelector('input[name="search_comp_method"]:checked');
+    if (!el) return;
+    const method = el.value;
+    const nameInput = document.getElementById('in-name');
+    const taxidGroup = document.getElementById('search-taxid-group');
+    if (method === 'taxid') {
+        taxidGroup.style.display = 'block';
+        nameInput.readOnly = true;
+        nameInput.placeholder = '請先輸入上方統編以自動帶入名稱';
+        nameInput.value = '';
+    } else {
+        taxidGroup.style.display = 'none';
+        nameInput.readOnly = false;
+        nameInput.placeholder = '請手動輸入車行名稱';
+        nameInput.value = '';
+    }
+}
+
+function toggleReportCompMethod() {
+    const el = document.querySelector('input[name="report_comp_method"]:checked');
+    if (!el) return;
+    const method = el.value;
+    const nameInput = document.getElementById('report-name');
+    const taxidGroup = document.getElementById('report-taxid-group');
+    if (method === 'taxid') {
+        taxidGroup.style.display = 'block';
+        nameInput.readOnly = true;
+        nameInput.placeholder = '請先輸入上方統編以自動帶入名稱';
+        nameInput.value = '';
+    } else {
+        taxidGroup.style.display = 'none';
+        nameInput.readOnly = false;
+        nameInput.placeholder = '請手動輸入車行名稱';
+        nameInput.value = '';
+    }
 }
 
 async function fetchCompanyName(taxId, targetInputId) {
@@ -287,8 +348,11 @@ async function handleSearch() {
 
     if (isVehicle) {
         if (isCompany) {
-            const taxId = document.getElementById('in-taxid').value.trim();
-            if (taxId.length !== 8) return alert("請輸入完整的8碼統一編號");
+            const methodEl = document.querySelector('input[name="search_comp_method"]:checked');
+            if (methodEl && methodEl.value === 'taxid') {
+                const taxId = document.getElementById('in-taxid').value.trim();
+                if (taxId.length !== 8) return alert("請輸入完整的8碼統一編號");
+            }
         } else if (isConsumer) {
             ageRange = document.getElementById('in-car-type')?.value || ""; // 借用 ageRange 傳遞特徵以計算關聯
         }
@@ -306,7 +370,7 @@ async function handleSearch() {
     const hPhone = phoneClean ? await hashData(phoneClean) : "";
     const hUid = await hashData(currentUser.uid);
     try {
-        const result = await callGAS({ action: "search", uid: hUid, platform: currentUser.platform, hName, hPhone, gender, ageRange });
+        const result = await callGAS({ action: "search", uid: hUid, platform: currentUser.platform, systemMode: currentSystemMode, hName, hPhone, gender, ageRange });
         if (result && result.status === 'ok') {
             updateResultsUI(result);
             switchView('view-results');
@@ -443,7 +507,8 @@ async function submitModifiedReport() {
         const res = await callGAS({ 
             action: 'modify_report', 
             uid: hUid, 
-            platform: currentUser.platform, 
+            platform: currentUser.platform,
+            systemMode: currentSystemMode,
             recordId: currentRecordIdToModify, 
             tags: Array.from(selectedTags) 
         });
@@ -482,9 +547,12 @@ async function submitReport() {
         year = new Date().getFullYear().toString();
         area = "不適用";
         if (isCompany) {
-            const taxId = document.getElementById('report-taxid').value.trim();
-            if (taxId.length !== 8) return alert("請輸入完整的8碼統一編號");
-            specificData.taxId = await hashData(taxId);
+            const methodEl = document.querySelector('input[name="report_comp_method"]:checked');
+            if (methodEl && methodEl.value === 'taxid') {
+                const taxId = document.getElementById('report-taxid').value.trim();
+                if (taxId.length !== 8) return alert("請輸入完整的8碼統一編號");
+                specificData.taxId = await hashData(taxId);
+            }
         } else if (isConsumer) {
             age = document.getElementById('report-car-type')?.value;
             if (!age) return alert("請選擇租賃車種");
@@ -536,7 +604,7 @@ async function submitReport() {
     };
 
     const payload = {
-        action: "report", uid: hUid, platform: currentUser.platform, type: currentReportType,
+        action: "report", uid: hUid, platform: currentUser.platform, systemMode: currentSystemMode, type: currentReportType,
         area, hName, hPhone, ageRange: age, gender, year, tags: Array.from(selectedTags), timestamp: new Date().toISOString(), specificData, evidence
     };
 
