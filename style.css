@@ -4,16 +4,16 @@
    全域設計令牌 (深色模式 + 玻璃擬物化)
    ============================================================ */
 :root {
-    --primary: #2563eb;       /* 現代藍 (稍加深適應白底) */
-    --primary-hover: #1d4ed8;
-    --secondary: #eab308;     /* 琥珀色 */
-    --secondary-hover: #ca8a04;
-    --text: #1e293b;          /* 主文字：深灰黑 */
-    --text-muted: #64748b;    /* 次要文字：中灰 */
-    --bg-dark: #f8fafc;       /* 亮色背景底色 */
-    --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); /* 亮灰白漸層 */
+    --primary: #b87359;       /* 玫瑰金/紅銅色 (對應蒙眼布) */
+    --primary-hover: #9c5f49;
+    --secondary: #747d8c;     /* 鋼鐵灰 (對應金屬盾牌) */
+    --secondary-hover: #57606f;
+    --text: #2f3542;          /* 主文字：深灰黑 */
+    --text-muted: #747d8c;    /* 次要文字：鋼鐵灰 */
+    --bg-dark: #f1f2f6;       /* 亮色背景底色 */
+    --bg-gradient: linear-gradient(135deg, #f8f9fa 0%, #ced6e0 100%); /* 金屬銀白漸層 */
     --card-bg: rgba(255, 255, 255, 0.85); /* 白色玻璃背景 */
-    --card-border: rgba(0, 0, 0, 0.05);   /* 微灰邊框 */
+    --card-border: rgba(0, 0, 0, 0.08);   /* 微灰邊框 */
     --input-bg: rgba(255, 255, 255, 0.9);
     --input-border: rgba(0, 0, 0, 0.15);
     --danger: #ef4444;
@@ -208,8 +208,8 @@ header p {
     display: inline-block;
     padding: 6px 14px;
     border-radius: 8px;
-    background: rgba(37, 99, 235, 0.1);
-    border: 1px solid rgba(37, 99, 235, 0.2);
+    background: rgba(184, 115, 89, 0.1);
+    border: 1px solid rgba(184, 115, 89, 0.2);
     font-size: 14px;
     font-weight: 700;
     margin-bottom: 20px;
@@ -240,7 +240,7 @@ header p {
     gap: 15px;
 }
 
-input:not([type="checkbox"]),
+input:not([type="checkbox"]):not([type="radio"]),
 select {
     width: 100%;
     height: 50px;
@@ -256,11 +256,11 @@ select {
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-input:not([type="checkbox"]):focus,
+input:not([type="checkbox"]):not([type="radio"]):focus,
 select:focus {
     border-color: var(--primary);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 0 3px rgba(184, 115, 89, 0.2);
 }
 
 input::placeholder {
@@ -297,12 +297,12 @@ button {
 .btn-primary {
     background: var(--primary);
     color: white;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 4px 15px rgba(184, 115, 89, 0.4);
 }
 .btn-primary:hover {
     background: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+    box-shadow: 0 6px 20px rgba(184, 115, 89, 0.6);
 }
 
 .btn-secondary {
@@ -317,13 +317,13 @@ button {
     color: var(--secondary);
 }
 .btn-outline:hover {
-    background: rgba(245, 158, 11, 0.1);
+    background: rgba(116, 125, 140, 0.1);
 }
 
 .btn-submit-yellow {
     background: var(--secondary);
     color: #fff;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 4px 15px rgba(116, 125, 140, 0.4);
 }
 .btn-submit-yellow:hover {
     background: var(--secondary-hover);
@@ -404,7 +404,7 @@ button {
     background: var(--primary);
     color: white;
     border-color: var(--primary);
-    box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 10px rgba(184, 115, 89, 0.3);
 }
 
 .ui-tag {
@@ -453,7 +453,7 @@ button {
 .identity-switch button.active {
     background: var(--primary);
     color: white;
-    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 2px 10px rgba(184, 115, 89, 0.4);
 }
 
 /* ============================================================
