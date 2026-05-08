@@ -175,11 +175,6 @@
                 <button class="btn-primary" style="margin-top: 10px;" onclick="resetApp()">🔙 返回重新搜尋</button>
             </div>
 
-            <div id="admin-tool-section" class="hidden"
-                style="margin-top: 20px; border-top: 1px dashed var(--border); padding: 15px;">
-                <button id="btn-admin-manage" class="btn-secondary w-full" onclick="switchView('view-admin-tool')">⚙️
-                    進入管理員下架工具</button>
-            </div>
         </section>
 
         <section id="view-admin-tool" class="view hidden">
@@ -369,6 +364,9 @@
                 <a href="https://lin.ee/WY9uJqC" target="_blank" rel="noopener noreferrer"
                     style="text-decoration: none; color: var(--level-green); font-weight: 500;">💬 聯絡管理員 (申訴)</a>
             </p>
+            <div id="admin-tool-section" class="hidden" style="margin-top: 20px; text-align: center;">
+                <button id="btn-admin-manage" class="btn-small-outline" style="border-color: var(--danger); color: var(--danger); font-weight: bold; width: auto; padding: 6px 15px;" onclick="switchView('view-admin-tool')">⚙️ 進入管理員工具</button>
+            </div>
         </footer>
     </div>
 
