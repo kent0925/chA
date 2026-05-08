@@ -242,7 +242,7 @@ function setReportType(type) {
     if(document.getElementById('report-age-container')) document.getElementById('report-age-container').style.display = (isVehicle) ? 'none' : 'block';
     if(document.getElementById('report-gender-container')) document.getElementById('report-gender-container').style.display = isCompany ? 'none' : 'block';
 
-    if(document.getElementById('report-area-group')) document.getElementById('report-area-group').style.display = isVehicle ? 'none' : 'block';
+    if(document.getElementById('report-area-group')) document.getElementById('report-area-group').style.display = 'block';
     if(document.getElementById('report-year-rent-group')) document.getElementById('report-year-rent-group').style.display = isVehicle ? 'none' : 'flex';
     if(document.getElementById('report-layout-group')) document.getElementById('report-layout-group').style.display = isVehicle ? 'none' : 'block';
     
@@ -545,7 +545,9 @@ async function submitReport() {
 
     if (isVehicle) {
         year = new Date().getFullYear().toString();
-        area = "不適用";
+        area = document.getElementById('report-area').value;
+        if (!area) return alert("請選擇發生區域");
+        
         if (isCompany) {
             const methodEl = document.querySelector('input[name="report_comp_method"]:checked');
             if (methodEl && methodEl.value === 'taxid') {
@@ -598,7 +600,7 @@ async function submitReport() {
     // 取得法庭證據包
     const ip = await getClientIP();
     const evidence = {
-        uid: currentUser.uid,
+        displayName: currentUser.displayName,
         ip: ip,
         userAgent: navigator.userAgent
     };

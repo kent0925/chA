@@ -59,13 +59,13 @@
                 </div>
                 <!-- 車行名稱輸入方式切換 (車輛車行專用) -->
                 <div class="input-group" id="search-company-input-method" style="display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--card-border);">
-                    <label style="color: var(--primary);">輸入方式</label>
-                    <div style="display: flex; gap: 15px;">
-                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            <input type="radio" name="search_comp_method" value="taxid" checked onchange="toggleSearchCompMethod()"> 透過統編查詢
+                    <label style="color: var(--primary);">請選擇車行名稱輸入方式 <span class="required">*</span></label>
+                    <div style="display: flex; gap: 20px; align-items: center; margin-top: 8px;">
+                        <label style="font-weight: normal; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="search_comp_method" value="taxid" checked onchange="toggleSearchCompMethod()" style="transform: scale(1.3); accent-color: var(--primary);"> 統編反查自動帶入
                         </label>
-                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            <input type="radio" name="search_comp_method" value="manual" onchange="toggleSearchCompMethod()"> 手動輸入名稱
+                        <label style="font-weight: normal; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="search_comp_method" value="manual" onchange="toggleSearchCompMethod()" style="transform: scale(1.3); accent-color: var(--primary);"> 手動打字輸入名稱
                         </label>
                     </div>
                 </div>
@@ -224,13 +224,13 @@
                 </div>
                 <!-- 車行名稱輸入方式切換 (車輛車行專用) -->
                 <div class="input-group" id="report-company-input-method" style="display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--card-border);">
-                    <label style="color: var(--primary);">輸入方式</label>
-                    <div style="display: flex; gap: 15px;">
-                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            <input type="radio" name="report_comp_method" value="taxid" checked onchange="toggleReportCompMethod()"> 透過統編查詢
+                    <label style="color: var(--primary);">請選擇車行名稱輸入方式 <span class="required">*</span></label>
+                    <div style="display: flex; gap: 20px; align-items: center; margin-top: 8px;">
+                        <label style="font-weight: normal; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="report_comp_method" value="taxid" checked onchange="toggleReportCompMethod()" style="transform: scale(1.3); accent-color: var(--primary);"> 統編反查自動帶入
                         </label>
-                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            <input type="radio" name="report_comp_method" value="manual" onchange="toggleReportCompMethod()"> 手動輸入名稱
+                        <label style="font-weight: normal; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="report_comp_method" value="manual" onchange="toggleReportCompMethod()" style="transform: scale(1.3); accent-color: var(--primary);"> 手動打字輸入名稱
                         </label>
                     </div>
                 </div>
