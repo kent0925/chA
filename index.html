@@ -13,9 +13,11 @@
 <body>
     <div id="app">
         <div id="toast-container" class="toast-container"></div>
-        <header onclick="resetApp()" style="cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
+        <header onclick="resetApp()" style="cursor: pointer; transition: opacity 0.2s;"
+            onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">
             <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 10px;">
-                <img src="LOGO.jpg" alt="蒙眼 LOGO" style="width: 55px; height: 55px; object-fit: contain; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                <img src="LOGO.jpg" alt="蒙眼 LOGO"
+                    style="width: 55px; height: 55px; object-fit: contain; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                 <h1 style="margin: 0; font-size: 2.2em;">蒙眼</h1>
             </div>
             <p style="margin-top: 0;">去識別化租賃數據庫</p>
@@ -46,11 +48,14 @@
         </div>
 
         <section id="view-home" class="view">
-            <div class="card" style="text-align: center; display: flex; flex-direction: column; gap: 15px; padding: 30px 20px;">
+            <div class="card"
+                style="text-align: center; display: flex; flex-direction: column; gap: 15px; padding: 30px 20px;">
                 <h2 style="margin-top: 0; color: var(--text);">選擇查詢系統</h2>
                 <p class="sub-text" style="margin-bottom: 10px;">請選擇您要查詢或建立的履約紀錄類型</p>
                 <button class="btn-primary" onclick="setSystemMode('house')">🏠 進入房屋租賃履約查詢</button>
-                <button class="btn-primary" style="background: var(--level-orange); color: #fff; border-color: var(--level-orange); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);" onclick="setSystemMode('vehicle')">🚗 進入車輛租賃履約查詢</button>
+                <button class="btn-primary"
+                    style="background: var(--level-orange); color: #fff; border-color: var(--level-orange); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);"
+                    onclick="setSystemMode('vehicle')">🚗 進入車輛租賃履約查詢</button>
             </div>
         </section>
 
@@ -61,21 +66,31 @@
                     <!-- 動態生成 -->
                 </div>
                 <!-- 車行名稱輸入方式切換 (車輛車行專用) -->
-                <div class="input-group" id="search-company-input-method" style="display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--card-border);">
+                <div class="input-group" id="search-company-input-method"
+                    style="display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--card-border);">
                     <label style="color: var(--primary);">請選擇車行名稱輸入方式 <span class="required">*</span></label>
                     <div style="display: flex; gap: 15px; align-items: center; margin-top: 5px;">
-                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            <input type="radio" name="search_comp_method" value="taxid" checked onchange="toggleSearchCompMethod()" style="width: 16px !important; height: 16px !important; margin: 0; appearance: radio !important; -webkit-appearance: radio !important; accent-color: var(--primary);"> 統編反查自動帶入
+                        <label
+                            style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="search_comp_method" value="taxid" checked
+                                onchange="toggleSearchCompMethod()"
+                                style="width: 16px !important; height: 16px !important; margin: 0; appearance: radio !important; -webkit-appearance: radio !important; accent-color: var(--primary);">
+                            統編反查自動帶入
                         </label>
-                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            <input type="radio" name="search_comp_method" value="manual" onchange="toggleSearchCompMethod()" style="width: 16px !important; height: 16px !important; margin: 0; appearance: radio !important; -webkit-appearance: radio !important; accent-color: var(--primary);"> 手動打字輸入名稱
+                        <label
+                            style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="search_comp_method" value="manual"
+                                onchange="toggleSearchCompMethod()"
+                                style="width: 16px !important; height: 16px !important; margin: 0; appearance: radio !important; -webkit-appearance: radio !important; accent-color: var(--primary);">
+                            手動打字輸入名稱
                         </label>
                     </div>
                 </div>
                 <!-- 車行統編 (車輛專用) -->
                 <div class="input-group" id="search-taxid-group" style="display: none;">
                     <label>車行統一編號 (8碼) <span class="required">*</span></label>
-                    <input type="text" id="in-taxid" maxlength="8" placeholder="請輸入 8 碼數字" oninput="this.value=this.value.replace(/\D/g,''); fetchCompanyName(this.value, 'in-name');">
+                    <input type="text" id="in-taxid" maxlength="8" placeholder="請輸入 8 碼數字"
+                        oninput="this.value=this.value.replace(/\D/g,''); fetchCompanyName(this.value, 'in-name');">
                 </div>
                 <div class="input-group">
                     <label id="lbl-search-name" for="in-name">對象姓名 <span class="required">*</span></label>
@@ -86,8 +101,8 @@
                     <label>租賃車種</label>
                     <select id="in-car-type">
                         <option value="">不限/未知</option>
-                        <option value="機車">機車</option>
-                        <option value="重型機車">重型機車</option>
+                        <option value="普通機車">普通機車(≦250cc)</option>
+                        <option value="重型機車">重型機車(>250cc)</option>
                         <option value="一般客車">一般客車</option>
                         <option value="貨車">貨車</option>
                     </select>
@@ -154,10 +169,13 @@
                         <div id="results-tags" class="tag-selector-grid"></div>
                     </div>
                     <!-- 修改自身提報紀錄的按鈕區塊 -->
-                    <div id="modify-report-section" class="hidden" style="margin-top: 15px; background: rgba(59,130,246,0.1); padding: 15px; border-radius: 8px; border: 1px dashed var(--primary);">
-                        <div style="font-size: 0.9em; font-weight: 600; color: var(--primary); margin-bottom: 10px;">✏️ 找到您建立的紀錄，可修改標籤</div>
+                    <div id="modify-report-section" class="hidden"
+                        style="margin-top: 15px; background: rgba(59,130,246,0.1); padding: 15px; border-radius: 8px; border: 1px dashed var(--primary);">
+                        <div style="font-size: 0.9em; font-weight: 600; color: var(--primary); margin-bottom: 10px;">✏️
+                            找到您建立的紀錄，可修改標籤</div>
                         <div id="modify-tags-grid" class="tag-selector-grid"></div>
-                        <button class="btn-primary" style="margin-top: 10px;" onclick="submitModifiedReport()">儲存修改</button>
+                        <button class="btn-primary" style="margin-top: 10px;"
+                            onclick="submitModifiedReport()">儲存修改</button>
                     </div>
                     <div id="query-ref" class="query-ref"></div>
                 </div>
@@ -221,21 +239,32 @@
                     </select>
                 </div>
                 <!-- 車行名稱輸入方式切換 (車輛車行專用) -->
-                <div class="input-group" id="report-company-input-method" style="display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--card-border);">
+                <div class="input-group" id="report-company-input-method"
+                    style="display: none; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--card-border);">
                     <label style="color: var(--primary);">請選擇車行名稱輸入方式 <span class="required">*</span></label>
                     <div style="display: flex; gap: 15px; align-items: center; margin-top: 5px;">
-                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            <input type="radio" name="report_comp_method" value="taxid" checked onchange="toggleReportCompMethod()" style="width: 16px !important; height: 16px !important; margin: 0; appearance: radio !important; -webkit-appearance: radio !important; accent-color: var(--primary);"> 統編反查自動帶入
+                        <label
+                            style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="report_comp_method" value="taxid" checked
+                                onchange="toggleReportCompMethod()"
+                                style="width: 16px !important; height: 16px !important; margin: 0; appearance: radio !important; -webkit-appearance: radio !important; accent-color: var(--primary);">
+                            統編反查自動帶入
                         </label>
-                        <label style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                            <input type="radio" name="report_comp_method" value="manual" onchange="toggleReportCompMethod()" style="width: 16px !important; height: 16px !important; margin: 0; appearance: radio !important; -webkit-appearance: radio !important; accent-color: var(--primary);"> 手動打字輸入名稱
+                        <label
+                            style="font-weight: normal; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                            <input type="radio" name="report_comp_method" value="manual"
+                                onchange="toggleReportCompMethod()"
+                                style="width: 16px !important; height: 16px !important; margin: 0; appearance: radio !important; -webkit-appearance: radio !important; accent-color: var(--primary);">
+                            手動打字輸入名稱
                         </label>
                     </div>
                 </div>
                 <!-- 車行統編 (車輛專用) -->
                 <div class="input-group" id="report-taxid-group" style="display: none;">
                     <label>車行統一編號 (8碼) <span class="required">*</span></label>
-                    <input type="text" id="report-taxid" maxlength="8" placeholder="請輸入 8 碼數字" oninput="this.value=this.value.replace(/\D/g,''); fetchCompanyName(this.value, 'report-name');" required>
+                    <input type="text" id="report-taxid" maxlength="8" placeholder="請輸入 8 碼數字"
+                        oninput="this.value=this.value.replace(/\D/g,''); fetchCompanyName(this.value, 'report-name');"
+                        required>
                 </div>
                 <div class="input-group">
                     <label id="lbl-report-name">對象姓名 <span class="required">*</span></label>
@@ -277,8 +306,8 @@
                     <label>租賃車種 <span class="required">*</span></label>
                     <select id="report-car-type" required>
                         <option value="" disabled selected>請選擇車種</option>
-                        <option value="機車">機車</option>
-                        <option value="重型機車">重型機車</option>
+                        <option value="普通機車">普通機車(≦250cc)</option>
+                        <option value="重型機車">重型機車(>250cc)</option>
                         <option value="一般客車">一般客車</option>
                         <option value="貨車">貨車</option>
                     </select>
@@ -340,12 +369,17 @@
                     <div id="tag-container" class="tag-selector-grid"></div>
                 </div>
 
-                <div class="input-group" id="report-description-group">
-                    <label>詳細事發經過 <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(若選擇重大違規特徵，請清楚說明人、事、時、地、物，且至少 30 字)</span></label>
-                    <textarea id="report-description" rows="4" style="width: 100%; padding: 12px 15px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 14px; background-color: var(--input-bg); color: var(--text); resize: vertical; box-sizing: border-box;" placeholder="請客觀描述事發的人、事、時、地、物，避免情緒性字眼..."></textarea>
+                <div class="input-group" id="report-description-group" style="display: none;">
+                    <label>詳細事發經過 <span
+                            style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(若選擇重大違規特徵，請清楚說明人、事、時、地、物，且至少
+                            30 字)</span></label>
+                    <textarea id="report-description" rows="4"
+                        style="width: 100%; padding: 12px 15px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 14px; background-color: var(--input-bg); color: var(--text); resize: vertical; box-sizing: border-box;"
+                        placeholder="請客觀描述事發的人、事、時、地、物，避免情緒性字眼..."></textarea>
                 </div>
 
-                <div class="input-group" style="opacity: 0; position: absolute; top: -9999px; left: -9999px;" aria-hidden="true">
+                <div class="input-group" style="opacity: 0; position: absolute; top: -9999px; left: -9999px;"
+                    aria-hidden="true">
                     <label>請輸入您的暱稱 (請勿填寫)</label>
                     <input type="text" id="report-honeypot" tabindex="-1" autocomplete="off">
                 </div>
@@ -376,7 +410,9 @@
                     style="text-decoration: none; color: var(--level-green); font-weight: 500;">💬 聯絡管理員 (申訴)</a>
             </p>
             <div id="admin-tool-section" class="hidden" style="margin-top: 20px; text-align: center;">
-                <button id="btn-admin-manage" class="btn-small-outline" style="border-color: var(--danger); color: var(--danger); font-weight: bold; width: auto; padding: 6px 15px;" onclick="switchView('view-admin-tool')">⚙️ 進入管理員工具</button>
+                <button id="btn-admin-manage" class="btn-small-outline"
+                    style="border-color: var(--danger); color: var(--danger); font-weight: bold; width: auto; padding: 6px 15px;"
+                    onclick="switchView('view-admin-tool')">⚙️ 進入管理員工具</button>
             </div>
         </footer>
     </div>

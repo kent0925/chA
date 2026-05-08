@@ -12,13 +12,13 @@ async function callGAS(payload) {
             headers: { 'Content-Type': 'text/plain;charset=utf-8' }
         });
         const result = await response.json();
-        
+
         // --- 除錯模式：若有伺服器內部錯誤，直接噴出詳細 log ---
         if (result.status === 'error' && result.details) {
             console.error("GAS 內部錯誤:", result.details, "\nStack:", result.stack);
             alert(`伺服器內部錯誤詳細資訊：\n\n${result.details}\n\n請截圖回報開發者。`);
         }
-        
+
         return result;
     } catch (error) {
         console.error("API Error:", error);
@@ -31,7 +31,7 @@ async function getClientIP() {
         const res = await fetch('https://api.ipify.org?format=json');
         const data = await res.json();
         return data.ip;
-    } catch(e) {
+    } catch (e) {
         return "UNKNOWN";
     }
 }
@@ -45,7 +45,7 @@ function getDeviceFingerprint() {
             ctx.font = "14px 'Arial'";
             ctx.textBaseline = "alphabetic";
             ctx.fillStyle = "#f60";
-            ctx.fillRect(125,1,62,20);
+            ctx.fillRect(125, 1, 62, 20);
             ctx.fillStyle = "#069";
             ctx.fillText("TrustScale", 2, 15);
             ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
@@ -113,9 +113,9 @@ async function initializeAuth() {
                 // 隱藏回報按鈕
                 const btnOpenReport = document.getElementById('btn-open-report');
                 if (btnOpenReport) btnOpenReport.style.display = 'none';
-                
+
                 // 覆寫 openReportView 以防繞過
-                window.openReportView = function() {
+                window.openReportView = function () {
                     alert("您目前在停權期間，無法新增回報！");
                 };
             }
@@ -254,18 +254,18 @@ function setSearchType(type) {
     const isCompany = (type === 'car_company');
     const isConsumer = (type === 'car_consumer');
 
-    if(document.getElementById('search-company-input-method')) document.getElementById('search-company-input-method').style.display = isCompany ? 'block' : 'none';
-    if(document.getElementById('search-car-type-group')) document.getElementById('search-car-type-group').style.display = isConsumer ? 'block' : 'none';
-    if(document.getElementById('search-age-group')) document.getElementById('search-age-group').style.display = isVehicle ? 'none' : 'block';
-    if(document.getElementById('search-gender-group')) document.getElementById('search-gender-group').style.display = isCompany ? 'none' : 'block';
-    
-    if(document.getElementById('lbl-search-name')) document.getElementById('lbl-search-name').innerHTML = isCompany ? '車行名稱 <span class="required">*</span>' : '對象姓名 <span class="required">*</span>';
+    if (document.getElementById('search-company-input-method')) document.getElementById('search-company-input-method').style.display = isCompany ? 'block' : 'none';
+    if (document.getElementById('search-car-type-group')) document.getElementById('search-car-type-group').style.display = isConsumer ? 'block' : 'none';
+    if (document.getElementById('search-age-group')) document.getElementById('search-age-group').style.display = isVehicle ? 'none' : 'block';
+    if (document.getElementById('search-gender-group')) document.getElementById('search-gender-group').style.display = isCompany ? 'none' : 'block';
+
+    if (document.getElementById('lbl-search-name')) document.getElementById('lbl-search-name').innerHTML = isCompany ? '車行名稱 <span class="required">*</span>' : '對象姓名 <span class="required">*</span>';
 
     if (isCompany) {
         toggleSearchCompMethod();
     } else {
-        if(document.getElementById('search-taxid-group')) document.getElementById('search-taxid-group').style.display = 'none';
-        if(document.getElementById('in-name')) {
+        if (document.getElementById('search-taxid-group')) document.getElementById('search-taxid-group').style.display = 'none';
+        if (document.getElementById('in-name')) {
             document.getElementById('in-name').readOnly = false;
             document.getElementById('in-name').placeholder = '請輸入真實姓名';
         }
@@ -281,27 +281,27 @@ function setReportType(type) {
     const isCompany = (type === 'car_company');
     const isConsumer = (type === 'car_consumer');
 
-    if(document.getElementById('report-company-input-method')) document.getElementById('report-company-input-method').style.display = isCompany ? 'block' : 'none';
-    if(document.getElementById('report-car-type-group')) document.getElementById('report-car-type-group').style.display = isConsumer ? 'block' : 'none';
-    
-    if(document.getElementById('report-age-gender-group')) document.getElementById('report-age-gender-group').style.display = isCompany ? 'none' : 'flex';
-    if(document.getElementById('report-age-container')) document.getElementById('report-age-container').style.display = (isVehicle) ? 'none' : 'block';
-    if(document.getElementById('report-gender-container')) document.getElementById('report-gender-container').style.display = isCompany ? 'none' : 'block';
+    if (document.getElementById('report-company-input-method')) document.getElementById('report-company-input-method').style.display = isCompany ? 'block' : 'none';
+    if (document.getElementById('report-car-type-group')) document.getElementById('report-car-type-group').style.display = isConsumer ? 'block' : 'none';
 
-    if(document.getElementById('report-area-group')) document.getElementById('report-area-group').style.display = 'block';
-    if(document.getElementById('report-year-rent-group')) document.getElementById('report-year-rent-group').style.display = isVehicle ? 'none' : 'flex';
-    if(document.getElementById('report-layout-group')) document.getElementById('report-layout-group').style.display = isVehicle ? 'none' : 'block';
-    
-    if(document.getElementById('fields-tenant')) document.getElementById('fields-tenant').style.display = (type === 'tenant' || type === 'student') ? 'block' : 'none';
-    if(document.getElementById('fields-landlord')) document.getElementById('fields-landlord').style.display = (type === 'landlord') ? 'block' : 'none';
-    
-    if(document.getElementById('lbl-report-name')) document.getElementById('lbl-report-name').innerHTML = isCompany ? '車行名稱 <span class="required">*</span>' : '對象姓名 <span class="required">*</span>';
+    if (document.getElementById('report-age-gender-group')) document.getElementById('report-age-gender-group').style.display = isCompany ? 'none' : 'flex';
+    if (document.getElementById('report-age-container')) document.getElementById('report-age-container').style.display = (isVehicle) ? 'none' : 'block';
+    if (document.getElementById('report-gender-container')) document.getElementById('report-gender-container').style.display = isCompany ? 'none' : 'block';
+
+    if (document.getElementById('report-area-group')) document.getElementById('report-area-group').style.display = 'block';
+    if (document.getElementById('report-year-rent-group')) document.getElementById('report-year-rent-group').style.display = isVehicle ? 'none' : 'flex';
+    if (document.getElementById('report-layout-group')) document.getElementById('report-layout-group').style.display = isVehicle ? 'none' : 'block';
+
+    if (document.getElementById('fields-tenant')) document.getElementById('fields-tenant').style.display = (type === 'tenant' || type === 'student') ? 'block' : 'none';
+    if (document.getElementById('fields-landlord')) document.getElementById('fields-landlord').style.display = (type === 'landlord') ? 'block' : 'none';
+
+    if (document.getElementById('lbl-report-name')) document.getElementById('lbl-report-name').innerHTML = isCompany ? '車行名稱 <span class="required">*</span>' : '對象姓名 <span class="required">*</span>';
 
     if (isCompany) {
         toggleReportCompMethod();
     } else {
-        if(document.getElementById('report-taxid-group')) document.getElementById('report-taxid-group').style.display = 'none';
-        if(document.getElementById('report-name')) {
+        if (document.getElementById('report-taxid-group')) document.getElementById('report-taxid-group').style.display = 'none';
+        if (document.getElementById('report-name')) {
             document.getElementById('report-name').readOnly = false;
             document.getElementById('report-name').placeholder = '請輸入對象真實姓名';
         }
@@ -367,6 +367,20 @@ function renderTags() {
     const container = document.getElementById('tag-container');
     if (!container) return;
     container.innerHTML = '';
+    selectedTags.clear();
+
+    // 初始化時隱藏說明框
+    const descGroup = document.getElementById('report-description-group');
+    if (descGroup) descGroup.style.display = 'none';
+
+    // 以中文關鍵字做 includes 比對，完全不依賴 emoji 編碼
+    const HIGH_RISK_KEYWORDS = [
+        "擅自更動裝修", "設備毀損紀錄", "押金扣留爭議",
+        "契約條款嚴苛", "未經授權入內", "發生事故隱瞞",
+        "車輛惡意毀損", "惡意扣留押金", "租賃契約陷阱", "隱瞞車況瑕疵"
+    ];
+    const isHighRisk = (tagText) => HIGH_RISK_KEYWORDS.some(kw => tagText.includes(kw));
+
     TAG_LIBRARY[currentReportType].forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
@@ -374,12 +388,21 @@ function renderTags() {
         chip.onclick = () => {
             if (selectedTags.has(tag.text)) { selectedTags.delete(tag.text); chip.classList.remove('selected'); }
             else { selectedTags.add(tag.text); chip.classList.add('selected'); }
+
+            // 檢查目前已選標籤是否包含重大違規
+            const hasHighRisk = [...selectedTags].some(t => isHighRisk(t));
+            if (descGroup) descGroup.style.display = hasHighRisk ? 'block' : 'none';
+            if (!hasHighRisk) {
+                const ta = document.getElementById('report-description');
+                if (ta) ta.value = '';
+            }
         };
         container.appendChild(chip);
     });
 }
 
 // --- 4. 搜尋與結果渲染 (補全參數) ---
+
 async function handleSearch() {
     const isVehicle = (currentSystemMode === 'vehicle');
     const isCompany = (currentSearchType === 'car_company');
@@ -388,7 +411,7 @@ async function handleSearch() {
     const name = document.getElementById('in-name').value.trim();
     const phoneRaw = document.getElementById('in-phone').value.trim();
     const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
-    
+
     let gender = "";
     let ageRange = "";
 
@@ -524,12 +547,12 @@ function renderModifyTags(existingTags) {
     const container = document.getElementById('modify-tags-grid');
     if (!container) return;
     container.innerHTML = '';
-    
+
     const allAvailableTags = TAG_LIBRARY[currentSearchType] || [];
-    
+
     selectedTags.clear();
     existingTags.forEach(t => selectedTags.add(t));
-    
+
     allAvailableTags.forEach(tag => {
         const chip = document.createElement('div');
         chip.className = 'tag-chip';
@@ -547,17 +570,17 @@ async function submitModifiedReport() {
     if (!currentRecordIdToModify && currentRecordIdToModify !== 0) return alert("無效的紀錄 ID");
     if (selectedTags.size === 0) return alert("請至少選擇一個標籤");
     if (!confirm("確定要修改這筆紀錄的標籤嗎？")) return;
-    
+
     switchView('view-loading');
     const hUid = await hashData(currentUser.uid);
     try {
-        const res = await callGAS({ 
-            action: 'modify_report', 
-            uid: hUid, 
+        const res = await callGAS({
+            action: 'modify_report',
+            uid: hUid,
             platform: currentUser.platform,
             systemMode: currentSystemMode,
-            recordId: currentRecordIdToModify, 
-            tags: Array.from(selectedTags) 
+            recordId: currentRecordIdToModify,
+            tags: Array.from(selectedTags)
         });
         if (res.status === 'ok') {
             alert("✅ 標籤已修改成功！");
@@ -566,7 +589,7 @@ async function submitModifiedReport() {
             alert(res.message || "修改失敗");
             switchView('view-results');
         }
-    } catch(e) {
+    } catch (e) {
         alert("網路連線異常，請稍後再試。");
         switchView('view-results');
     }
@@ -589,7 +612,7 @@ async function submitReport() {
     const name = document.getElementById('report-name').value.trim();
     const phoneRaw = document.getElementById('report-phone').value.trim();
     const phoneClean = phoneRaw.replace(/\D/g, '').slice(-4);
-    
+
     const agreement = document.getElementById('report-agreement').checked;
 
     if (!agreement) return alert("請勾選切結書");
@@ -602,7 +625,7 @@ async function submitReport() {
         year = new Date().getFullYear().toString();
         area = document.getElementById('report-area').value;
         if (!area) return alert("請選擇發生區域");
-        
+
         if (isCompany) {
             const methodEl = document.querySelector('input[name="report_comp_method"]:checked');
             if (methodEl && methodEl.value === 'taxid') {
@@ -629,7 +652,7 @@ async function submitReport() {
         if (!year) return alert("請選擇回報年份");
         if (!document.getElementById('report-rent')?.value) return alert("請選擇每月租金");
         if (!document.getElementById('report-layout')?.value) return alert("請選擇格局類型");
-        
+
         if ((currentReportType === 'tenant' || currentReportType === 'student') && !document.getElementById('report-tenant-target')?.value) {
             return alert("請選擇承租型態");
         }
@@ -647,16 +670,13 @@ async function submitReport() {
 
     if (selectedTags.size === 0) return alert("請至少選擇一個標籤");
 
-    // 檢查高風險標籤
-    const highRiskKeywords = ["更動", "毀損", "扣留", "嚴苛", "授權", "拒絕", "超收", "施壓", "隱瞞", "欠繳", "陷阱", "巧立名目", "推卸", "逾期", "異味", "遲延", "喧嘩", "違規", "過度", "罰單", "爭議"];
-    let hasHighRisk = false;
-    for (let tag of selectedTags) {
-        if (highRiskKeywords.some(kw => tag.includes(kw))) {
-            hasHighRisk = true;
-            break;
-        }
-    }
-    
+    // 檢查高風險標籤（以中文關鍵字 includes 比對）
+    const HIGH_RISK_KEYWORDS = [
+        "擅自更動裝修", "設備毀損紀錄", "押金扣留爭議",
+        "契約條款嚴苛", "未經授權入內", "發生事故隱瞞",
+        "車輛惡意毀損", "惡意扣留押金", "租賃契約陷阱", "隱瞞車況瑕疵"
+    ];
+    const hasHighRisk = [...selectedTags].some(t => HIGH_RISK_KEYWORDS.some(kw => t.includes(kw)));
     const description = document.getElementById('report-description') ? document.getElementById('report-description').value.trim() : "";
     if (hasHighRisk && description.length < 30) {
         return alert("您選擇了重大違規特徵，請在「詳細事發經過」欄位清楚說明人、事、時、地、物，且必須至少 30 字以上以供備查。");
@@ -685,9 +705,14 @@ async function submitReport() {
 
     try {
         const result = await callGAS(payload);
-        alert(result?.message || "建檔完成");
-        location.reload();
-    } catch (e) { alert("建檔失敗"); switchView('view-report'); }
+        if (result?.status === 'ok') {
+            alert(result.message || "建檔完成");
+            location.reload();
+        } else {
+            alert(result?.message || "建檔失敗，請稍後再試");
+            switchView('view-report');
+        }
+    } catch (e) { alert("網路連線異常，請稍後再試。"); switchView('view-report'); }
 }
 
 // --- 6. ToS 與 UI 管理 ---
@@ -706,11 +731,11 @@ function acceptToS() { localStorage.setItem('tos_v1', 'true'); document.getEleme
 function checkFirstTimeUser() { if (!localStorage.getItem('tos_v1')) openToSModal(true); }
 function switchView(vId) { ['view-home', 'view-search', 'view-loading', 'view-results', 'view-report', 'view-admin-tool'].forEach(id => { const v = document.getElementById(id); if (v) v.classList.toggle('hidden', id !== vId); }); }
 
-function resetApp() { 
-    if(document.getElementById('in-name')) document.getElementById('in-name').value = ''; 
-    if(document.getElementById('in-phone')) document.getElementById('in-phone').value = ''; 
-    if(document.getElementById('in-taxid')) document.getElementById('in-taxid').value = '';
-    switchView('view-home'); 
+function resetApp() {
+    if (document.getElementById('in-name')) document.getElementById('in-name').value = '';
+    if (document.getElementById('in-phone')) document.getElementById('in-phone').value = '';
+    if (document.getElementById('in-taxid')) document.getElementById('in-taxid').value = '';
+    switchView('view-home');
 }
 
 function openReportView() {
@@ -761,14 +786,22 @@ async function adminSearch() {
 
             res.records.forEach(rec => {
                 const el = document.createElement('div');
-                el.style = "padding: 15px; border-bottom: 1px solid var(--card-border); margin-bottom: 10px;";
+                const isPending = rec.status === 'pending';
+                el.style = `padding: 15px; border-bottom: 1px solid var(--card-border); margin-bottom: 10px; ${isPending ? 'border-left: 3px solid #f39c12; background: rgba(243,156,18,0.05);' : ''}`;
                 el.innerHTML = `
-                    <div style="color:var(--text); font-weight:700;">內部流水號: ${rec.id}</div>
+                    <div style="color:var(--text); font-weight:700;">
+                        內部流水號: ${rec.id}
+                        ${isPending ? '<span style="color:#f39c12; font-size:0.85em; margin-left:8px;">⚠️ 待審核（集中攻擊隔離）</span>' : ''}
+                    </div>
                     <div class="sub-text">建檔日期: ${rec.date} | 標籤數: ${rec.tags}</div>
-                    <button class="btn-small-outline" style="color:var(--danger); border-color:var(--danger); margin-top:10px;" onclick="adminTakedown('${rec.id}')">強制下架此筆紀錄</button>
+                    <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+                        <button class="btn-small-outline" style="color:var(--danger); border-color:var(--danger);" onclick="adminTakedown('${rec.id}')">強制下架</button>
+                        ${isPending ? `<button class="btn-small-outline" style="color:var(--success,#27ae60); border-color:var(--success,#27ae60);" onclick="adminApprove('${rec.id}')">批准上架</button>` : ''}
+                    </div>
                 `;
                 results.appendChild(el);
             });
+
         } else {
             alert(res.message || "搜尋失敗或您沒有管理員權限");
             switchView('view-admin-tool');
@@ -791,7 +824,25 @@ async function adminTakedown(recordId) {
         } else {
             alert(res.message || "下架失敗");
         }
-    } catch(e) {
+    } catch (e) {
+        alert("網路連線異常，請稍後再試。");
+    }
+    switchView('view-admin-tool');
+}
+
+async function adminApprove(recordId) {
+    if (!confirm("確定要批准這筆待審核紀錄嗎？批准後將正式計入風險評分。")) return;
+    switchView('view-loading');
+    const hUid = await hashData(currentUser.uid);
+    try {
+        const res = await callGAS({ action: 'admin_approve', uid: hUid, platform: currentUser.platform, recordId });
+        if (res.status === 'ok') {
+            alert("✅ 紀錄已批准上架！");
+            document.getElementById('admin-results-container').classList.add('hidden');
+        } else {
+            alert(res.message || "批准失敗");
+        }
+    } catch (e) {
         alert("網路連線異常，請稍後再試。");
     }
     switchView('view-admin-tool');
