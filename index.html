@@ -339,6 +339,17 @@
                 <div class="input-group"><label>特徵 (可複選)</label>
                     <div id="tag-container" class="tag-selector-grid"></div>
                 </div>
+
+                <div class="input-group" id="report-description-group">
+                    <label>詳細事發經過 <span style="font-size: 0.85em; color: var(--text-muted); font-weight: normal;">(若選擇重大違規特徵，請清楚說明人、事、時、地、物，且至少 30 字)</span></label>
+                    <textarea id="report-description" rows="4" style="width: 100%; padding: 12px 15px; border: 1px solid var(--input-border); border-radius: 12px; font-size: 14px; background-color: var(--input-bg); color: var(--text); resize: vertical; box-sizing: border-box;" placeholder="請客觀描述事發的人、事、時、地、物，避免情緒性字眼..."></textarea>
+                </div>
+
+                <div class="input-group" style="opacity: 0; position: absolute; top: -9999px; left: -9999px;" aria-hidden="true">
+                    <label>請輸入您的暱稱 (請勿填寫)</label>
+                    <input type="text" id="report-honeypot" tabindex="-1" autocomplete="off">
+                </div>
+
                 <div class="input-group agreement-box">
                     <label class="agreement-label">
                         <input type="checkbox" id="report-agreement" required>

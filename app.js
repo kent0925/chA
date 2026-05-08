@@ -36,6 +36,28 @@ async function getClientIP() {
     }
 }
 
+function getDeviceFingerprint() {
+    return new Promise(resolve => {
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = "top";
+            ctx.font = "14px 'Arial'";
+            ctx.textBaseline = "alphabetic";
+            ctx.fillStyle = "#f60";
+            ctx.fillRect(125,1,62,20);
+            ctx.fillStyle = "#069";
+            ctx.fillText("TrustScale", 2, 15);
+            ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+            ctx.fillText("TrustScale", 4, 17);
+            const dataUrl = canvas.toDataURL();
+            hashData(dataUrl).then(hash => resolve(hash.substring(0, 16)));
+        } catch (e) {
+            resolve("UNKNOWN_DEVICE");
+        }
+    });
+}
+
 let currentUser = { uid: 'GUEST', platform: 'WEB', displayName: '訪客測試', pictureUrl: '', personalCount: 0 };
 
 // --- 1. 加密引擎 ---
@@ -76,6 +98,30 @@ async function initializeAuth() {
             } else { liff.login(); return; }
         }
     } catch (e) { console.error("Auth Error:", e.message); currentUser = { uid: 'GUEST_DEFAULT', platform: 'WEB', displayName: '訪客測試' }; }
+
+    // --- 黑名單狀態檢查 ---
+    try {
+        const hUid = await hashData(currentUser.uid);
+        const statusRes = await callGAS({ action: 'check_user_status', uid: hUid });
+        if (statusRes.status === 'ok' && statusRes.violation) {
+            if (statusRes.violation.banned) {
+                alert("🚫 【系統通知】您因多次惡意通報，已被永久列入黑名單，無法使用本系統任何功能。");
+                document.body.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--danger); font-weight: bold; font-size: 20px;">此帳號已被永久停權。</div>';
+                return;
+            } else if (statusRes.violation.suspensionDays > 0) {
+                alert(`⚠️ 【系統通知】您因違反平台規範被下架紀錄，目前受到停權處分。\n\n您在接下來的 ${statusRes.violation.suspensionDays} 天內僅能查詢，無法新增回報！`);
+                // 隱藏回報按鈕
+                const btnOpenReport = document.getElementById('btn-open-report');
+                if (btnOpenReport) btnOpenReport.style.display = 'none';
+                
+                // 覆寫 openReportView 以防繞過
+                window.openReportView = function() {
+                    alert("您目前在停權期間，無法新增回報！");
+                };
+            }
+        }
+    } catch (e) { console.error("狀態檢查失敗", e); }
+
     updateUserInfoUI();
 }
 
@@ -365,6 +411,7 @@ async function handleSearch() {
     }
 
     if (!name) return alert(isCompany ? "請輸入車行名稱" : "請輸入姓名");
+    if (phoneClean.length > 0 && phoneClean.length !== 4) return alert("請輸入完整的 4 位電話末四碼，或保持空白");
     switchView('view-loading');
     const hName = await hashData(name);
     const hPhone = phoneClean ? await hashData(phoneClean) : "";
@@ -527,6 +574,14 @@ async function submitModifiedReport() {
 
 // --- 5. 回報提交 (補全性別欄位) ---
 async function submitReport() {
+    // 蜜罐檢查
+    const honeypot = document.getElementById('report-honeypot');
+    if (honeypot && honeypot.value) {
+        alert("建檔完成");
+        location.reload();
+        return;
+    }
+
     const isVehicle = (currentSystemMode === 'vehicle');
     const isCompany = (currentReportType === 'car_company');
     const isConsumer = (currentReportType === 'car_consumer');
@@ -592,6 +647,22 @@ async function submitReport() {
 
     if (selectedTags.size === 0) return alert("請至少選擇一個標籤");
 
+    // 檢查高風險標籤
+    const highRiskKeywords = ["更動", "毀損", "扣留", "嚴苛", "授權", "拒絕", "超收", "施壓", "隱瞞", "欠繳", "陷阱", "巧立名目", "推卸", "逾期", "異味", "遲延", "喧嘩", "違規", "過度", "罰單", "爭議"];
+    let hasHighRisk = false;
+    for (let tag of selectedTags) {
+        if (highRiskKeywords.some(kw => tag.includes(kw))) {
+            hasHighRisk = true;
+            break;
+        }
+    }
+    
+    const description = document.getElementById('report-description') ? document.getElementById('report-description').value.trim() : "";
+    if (hasHighRisk && description.length < 30) {
+        return alert("您選擇了重大違規特徵，請在「詳細事發經過」欄位清楚說明人、事、時、地、物，且必須至少 30 字以上以供備查。");
+    }
+    specificData.description = description;
+
     switchView('view-loading');
     const hName = await hashData(name);
     const hPhone = await hashData(phoneClean);
@@ -599,9 +670,11 @@ async function submitReport() {
 
     // 取得法庭證據包
     const ip = await getClientIP();
+    const deviceId = await getDeviceFingerprint();
     const evidence = {
         displayName: currentUser.displayName,
         ip: ip,
+        deviceId: deviceId,
         userAgent: navigator.userAgent
     };
 
@@ -665,6 +738,7 @@ async function adminSearch() {
     const name = document.getElementById('admin-search-name').value.trim();
     const phone = document.getElementById('admin-search-phone').value.trim();
     if (!name) return alert("請輸入目標對象姓名");
+    if (phone.length > 0 && phone.length !== 4) return alert("請輸入完整的 4 位電話末四碼，或保持空白");
 
     switchView('view-loading');
     const hName = await hashData(name);
