@@ -489,10 +489,10 @@ function updateResultsUI(input) {
         }
     }
 
-    // 💡 若為管理員，直接將下方的大按鈕顯示出來，不需再點擊小齒輪
-    const adminSection = document.getElementById('admin-tool-section');
-    if (adminSection) {
-        adminSection.classList.toggle('hidden', !input.isAdmin);
+    // 若為管理員，顯示管理員工具入口按鈕
+    const adminEntryBtn = document.getElementById('admin-entry-btn');
+    if (adminEntryBtn) {
+        adminEntryBtn.classList.toggle('hidden', !input.isAdmin);
     }
 }
 
@@ -729,7 +729,14 @@ function openToSModal(force = false) {
 }
 function acceptToS() { localStorage.setItem('tos_v1', 'true'); document.getElementById('tos-modal').classList.add('hidden'); }
 function checkFirstTimeUser() { if (!localStorage.getItem('tos_v1')) openToSModal(true); }
-function switchView(vId) { ['view-home', 'view-search', 'view-loading', 'view-results', 'view-report', 'view-admin-tool'].forEach(id => { const v = document.getElementById(id); if (v) v.classList.toggle('hidden', id !== vId); }); }
+function switchView(vId) {
+    ['view-home', 'view-search', 'view-loading', 'view-results', 'view-report', 'view-admin-tool'].forEach(id => {
+        const v = document.getElementById(id);
+        if (v) v.classList.toggle('hidden', id !== vId);
+    });
+    // 切換標籤後回到頁面頂端，避免瀏覽器自動捧動至不對的位置
+    window.scrollTo({ top: 0, behavior: 'instant' });
+}
 
 function resetApp() {
     if (document.getElementById('in-name')) document.getElementById('in-name').value = '';
