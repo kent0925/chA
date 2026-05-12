@@ -99,25 +99,33 @@ async function initializeAuth() {
         }
     } catch (e) { console.error("Auth Error:", e.message); currentUser = { uid: 'GUEST_DEFAULT', platform: 'WEB', displayName: '訪客測試' }; }
 
-    // --- 黑名單狀態檢查 ---
+    // --- 黑名單狀態檢查 + 管理員身分識別 ---
     try {
         const hUid = await hashData(currentUser.uid);
         const statusRes = await callGAS({ action: 'check_user_status', uid: hUid });
-        if (statusRes.status === 'ok' && statusRes.violation) {
-            if (statusRes.violation.banned) {
-                alert("🚫 【系統通知】您因多次惡意通報，已被永久列入黑名單，無法使用本系統任何功能。");
-                document.body.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--danger); font-weight: bold; font-size: 20px;">此帳號已被永久停權。</div>';
-                return;
-            } else if (statusRes.violation.suspensionDays > 0) {
-                alert(`⚠️ 【系統通知】您因違反平台規範被下架紀錄，目前受到停權處分。\n\n您在接下來的 ${statusRes.violation.suspensionDays} 天內僅能查詢，無法新增回報！`);
-                // 隱藏回報按鈕
-                const btnOpenReport = document.getElementById('btn-open-report');
-                if (btnOpenReport) btnOpenReport.style.display = 'none';
+        if (statusRes.status === 'ok') {
+            // 違規檢查
+            if (statusRes.violation) {
+                if (statusRes.violation.banned) {
+                    alert("🚫 【系統通知】您因多次惡意通報，已被永久列入黑名單，無法使用本系統任何功能。");
+                    document.body.innerHTML = '<div style="text-align:center; padding: 50px; color: var(--danger); font-weight: bold; font-size: 20px;">此帳號已被永久停權。</div>';
+                    return;
+                } else if (statusRes.violation.suspensionDays > 0) {
+                    alert(`⚠️ 【系統通知】您因違反平台規範被下架紀錄，目前受到停權處分。\n\n您在接下來的 ${statusRes.violation.suspensionDays} 天內僅能查詢，無法新增回報！`);
+                    // 隱藏回報按鈕
+                    const btnOpenReport = document.getElementById('btn-open-report');
+                    if (btnOpenReport) btnOpenReport.style.display = 'none';
 
-                // 覆寫 openReportView 以防繞過
-                window.openReportView = function () {
-                    alert("您目前在停權期間，無法新增回報！");
-                };
+                    // 覆寫 openReportView 以防繞過
+                    window.openReportView = function () {
+                        alert("您目前在停權期間，無法新增回報！");
+                    };
+                }
+            }
+            // 管理員身分：首頁即顯示管理員工具入口
+            if (statusRes.isAdmin) {
+                const adminToolSection = document.getElementById('admin-tool-section');
+                if (adminToolSection) adminToolSection.classList.remove('hidden');
             }
         }
     } catch (e) { console.error("狀態檢查失敗", e); }
