@@ -354,11 +354,17 @@ async function fetchCompanyName(taxId, targetInputId) {
         try {
             const res = await fetch(`https://company.g0v.ronny.tw/api/show/${taxId}`);
             const data = await res.json();
-            if (data && data.data && data.data['公司名稱']) {
-                document.getElementById(targetInputId).value = data.data['公司名稱'];
+            // 同時支援公司登記（公司名稱）與商業登記（商業名稱）
+            const name = data?.data?.['公司名稱'] || data?.data?.['商業名稱'] || data?.data?.['Company_Name'] || null;
+            if (name) {
+                document.getElementById(targetInputId).value = name;
+            } else {
+                document.getElementById(targetInputId).value = '';
+                document.getElementById(targetInputId).placeholder = '查無此統編，請改用手動輸入';
             }
         } catch (e) {
             console.error("查無此統編或網路錯誤", e);
+            document.getElementById(targetInputId).placeholder = '統編查詢失敗，請改用手動輸入';
         }
     }
 }
@@ -476,23 +482,28 @@ function updateResultsUI(input) {
     updateSpectrum(risk);
     renderQueryRef(input.isAdmin);
 
-    // 處理自身提報紀錄的修改介面
+    // 處理自身提報紀錄的修改介面（ownReport 包在 userInfo 裡）
     const modSection = document.getElementById('modify-report-section');
     if (modSection) {
-        if (input.ownReport) {
-            currentRecordIdToModify = input.ownReport.recordId;
+        const ownReport = input.userInfo && input.userInfo.ownReport;
+        if (ownReport) {
+            currentRecordIdToModify = ownReport.recordId;
             modSection.classList.remove('hidden');
-            renderModifyTags(input.ownReport.tags);
+            renderModifyTags(ownReport.tags);
         } else {
             currentRecordIdToModify = null;
             modSection.classList.add('hidden');
         }
     }
 
-    // 若為管理員，顯示管理員工具入口按鈕
+    // 若為管理員，顯示管理員工具入口按鈕（結果頁 + footer）
     const adminEntryBtn = document.getElementById('admin-entry-btn');
     if (adminEntryBtn) {
         adminEntryBtn.classList.toggle('hidden', !input.isAdmin);
+    }
+    const adminToolSection = document.getElementById('admin-tool-section');
+    if (adminToolSection) {
+        adminToolSection.classList.toggle('hidden', !input.isAdmin);
     }
 }
 
@@ -501,13 +512,20 @@ function renderResultTags(tags) {
     if (!container) return;
     container.innerHTML = '';
 
+    const wrapper = document.getElementById('results-tags-container');
+    const header = wrapper?.querySelector('.results-tags-header');
+
     if (!tags || tags.length === 0) {
-        document.getElementById('results-tags-container')?.classList.add('hidden');
-        container.innerHTML = "<div class='sub-text' style='color:#94a3b8;'>🛡️ 資料庫內查無此對象之異常履約紀錄</div>";
+        // 顯示容器但隱藏 header，讓「查無紀錄」提示可見
+        if (wrapper) wrapper.classList.remove('hidden');
+        if (header) header.style.display = 'none';
+        container.innerHTML = "<div class='sub-text' style='color:#94a3b8; padding: 10px 0;'>🛡️ 資料庫內查無此對象之異常履約紀錄</div>";
         return;
     }
 
-    document.getElementById('results-tags-container')?.classList.remove('hidden');
+    // 有標籤時顯示容器與 header
+    if (wrapper) wrapper.classList.remove('hidden');
+    if (header) header.style.display = '';
     tags.forEach(tag => {
         const el = document.createElement('div');
         el.className = 'ui-tag';
